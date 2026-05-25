@@ -17,6 +17,14 @@
   gap: 16px;
 }
 
+/* On home the middle search column is absent; collapse to logo|spacer|actions. */
+.innerHome {
+  grid-template-columns: auto 1fr;
+}
+.innerHome .right {
+  justify-self: end;
+}
+
 .brand {
   display: inline-flex;
   align-items: baseline;
@@ -34,33 +42,19 @@
   color: var(--color-text);
 }
 
+/* Constrain the nav search and center it in its grid column. 720px gives a
+   prominent centered search on wide layouts without stretching edge-to-edge. */
 .search {
   min-width: 0;
+  width: 100%;
+  max-width: 720px;
+  justify-self: center;
 }
 
 .right {
   display: inline-flex;
   align-items: center;
   gap: 14px;
-}
-
-.momentum {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  background: var(--color-surface-raised);
-}
-.momentumLabel {
-  font-size: 11px;
-  color: var(--color-subtle);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-.momentumValue {
-  font-size: 13px;
-  color: var(--color-text);
 }
 
 .account {
@@ -84,6 +78,6 @@
   .search {
     grid-column: 1 / -1;
     order: 3;
+    max-width: none;
   }
-  .momentum { display: none; }
 }

@@ -1,0 +1,54 @@
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0 12px;
+  min-height: 28px;
+}
+
+.crumb {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+}
+
+.sep {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-subtle);
+}
+
+.link {
+  color: var(--color-muted);
+}
+.link:hover {
+  color: var(--color-success);
+}
+
+.current {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.rightSlot {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+}

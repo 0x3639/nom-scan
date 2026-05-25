@@ -5,8 +5,11 @@ import { AddressSummary } from "../components/address/AddressSummary";
 import { AddressTabs, type AddressTab } from "../components/address/AddressTabs";
 import { PortfolioTab } from "../components/address/PortfolioTab";
 import { TransactionsTab } from "../components/address/TransactionsTab";
+import { Breadcrumb } from "../components/Breadcrumb";
+import { MomentumBadge } from "../components/MomentumBadge";
 import { NotFoundState } from "../components/state/NotFoundState";
 import { isAddress } from "@shared/validate/identifier";
+import { truncateMiddle } from "@shared/format/address";
 
 const TABS: readonly AddressTab[] = ["portfolios", "transactions"] as const;
 
@@ -26,6 +29,14 @@ export function AddressPage() {
 
   return (
     <div>
+      <Breadcrumb
+        items={[
+          { label: "Home", to: "/" },
+          { label: "Address" },
+          { label: truncateMiddle(address, 6, 4) },
+        ]}
+        rightSlot={<MomentumBadge />}
+      />
       <AddressHeader address={address} />
       <AddressSummary address={address} />
       <AddressTabs active={tab} onChange={setTab} />
