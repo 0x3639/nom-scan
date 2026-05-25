@@ -1,0 +1,18 @@
+# Copy this file to .dev.vars (gitignored) and fill in real values for local development.
+# Production values live in Cloudflare via `wrangler secret put <NAME> --env production`.
+
+# Base URL of the nom-indexer-go instance the Worker should proxy.
+# Local default assumes nom-indexer-go is running on http://localhost:8080.
+NOM_INDEXER_BASE_URL=http://localhost:8080
+
+# HMAC-SHA256 signing secret for minting JWTs that nom-indexer-go will accept.
+# The Worker mints a short-lived JWT per request (cached briefly in memory).
+NOM_INDEXER_JWT_SECRET=
+
+# Optional: subject claim placed in the minted JWT. Defaults to "pfscan".
+# NOM_INDEXER_JWT_SUBJECT=pfscan
+
+# Alternative: if you already have a pre-minted long-lived JWT, set this instead of
+# NOM_INDEXER_JWT_SECRET and the Worker will use it verbatim. If both are set,
+# NOM_INDEXER_JWT takes precedence.
+# NOM_INDEXER_JWT=

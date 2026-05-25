@@ -1,0 +1,38 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pfscan-local",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2025-01-15",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Top-level config = local defaults. Use `.dev.vars` for local secrets.
+  "vars": {
+    "NOM_INDEXER_JWT_SUBJECT": "pfscan",
+    "PFSCAN_ENV": "local"
+  },
+  "assets": {
+    "directory": "./dist/client",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  "observability": {
+    "enabled": true
+  },
+
+  "env": {
+    "production": {
+      "name": "pfscan",
+      // Production-only non-secret vars. Real NOM_INDEXER_BASE_URL goes here when known
+      // (Spec Open Question #1). NOM_INDEXER_JWT_SECRET is set via:
+      //   wrangler secret put NOM_INDEXER_JWT_SECRET --env production
+      "vars": {
+        "NOM_INDEXER_BASE_URL": "https://REPLACE-ME-PRODUCTION-INDEXER-URL",
+        "NOM_INDEXER_JWT_SUBJECT": "pfscan",
+        "PFSCAN_ENV": "production"
+      },
+      "routes": [
+        // { "pattern": "pfscan.com/*", "zone_name": "pfscan.com" }
+      ]
+    }
+  }
+}

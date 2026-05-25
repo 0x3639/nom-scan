@@ -1,0 +1,17 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  color: var(--color-muted);
+  transition: background-color 100ms, color 100ms;
+}
+.btn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-success);
+}
+.btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

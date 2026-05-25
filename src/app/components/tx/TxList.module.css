@@ -1,0 +1,62 @@
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.item {
+  padding: 12px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+}
+
+.headRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.hash {
+  color: var(--color-success);
+  font-size: 13px;
+}
+
+.amountRow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.amount {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.symbol {
+  color: var(--color-success);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.method {
+  font-size: 11px;
+}
+
+.dot {
+  color: var(--color-subtle);
+}

@@ -1,0 +1,109 @@
+.wrap {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table thead th {
+  text-align: left;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-subtle);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+}
+
+.table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  vertical-align: middle;
+}
+
+.table tbody tr:nth-child(even) {
+  background: var(--color-surface-alt);
+}
+
+.table tbody tr:hover {
+  background: var(--color-surface-hover);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.numeric {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.symbol {
+  color: var(--color-success);
+  font-weight: 700;
+}
+
+.totalRow td {
+  border-top: 2px solid var(--color-border) !important;
+  border-bottom: none !important;
+  background: var(--color-surface-alt);
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.totalLabel {
+  text-align: right;
+  color: var(--color-subtle);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.totalValue {
+  color: var(--color-text);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.standard {
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.muted {
+  color: var(--color-subtle);
+}
+
+.note {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--color-subtle);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+}
+
+@media (max-width: 640px) {
+  .table thead { display: none; }
+  .table, .table tbody, .table tr, .table td { display: block; width: 100%; }
+  .table tr {
+    border-bottom: 1px solid var(--color-border);
+    padding: 8px 0;
+  }
+  .table td {
+    border: none !important;
+    padding: 4px 12px;
+  }
+  .table td.numeric {
+    text-align: left;
+  }
+}

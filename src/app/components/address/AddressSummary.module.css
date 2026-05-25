@@ -1,0 +1,43 @@
+.grid {
+  display: grid;
+  /* 140px min lets all 7 summary cards fit on one row at desktop content width
+     (1240px). On narrower viewports auto-fit wraps naturally. */
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+}
+
+.cardWide {
+  grid-column: 1 / -1;
+}
+
+.cardLabel {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-subtle);
+  margin-bottom: 6px;
+}
+
+.cardValue {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  word-break: break-all;
+}
+
+.muted {
+  font-weight: 500 !important;
+  color: var(--color-muted) !important;
+}
+
+.fullRow {
+  grid-column: 1 / -1;
+}

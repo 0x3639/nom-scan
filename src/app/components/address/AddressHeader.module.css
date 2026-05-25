@@ -1,0 +1,35 @@
+.wrap {
+  padding: 16px 16px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.top {
+  margin-bottom: 6px;
+}
+
+.label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-subtle);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.value {
+  font-size: 16px;
+  word-break: break-all;
+}
+
+.short { display: none; }
+
+@media (max-width: 640px) {
+  .full { display: none; }
+  .short { display: inline; font-size: 14px; }
+}

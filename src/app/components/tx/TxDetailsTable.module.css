@@ -1,0 +1,111 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  font-size: 13px;
+}
+
+.row {
+  border-bottom: 1px solid var(--color-border);
+}
+.row:last-child { border-bottom: none; }
+
+.label {
+  text-align: left;
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--color-subtle);
+  background: var(--color-surface-alt);
+  padding: 12px 14px;
+  width: 220px;
+  vertical-align: top;
+  border-right: 1px solid var(--color-border);
+}
+
+.value {
+  padding: 12px 14px;
+  color: var(--color-text);
+  vertical-align: top;
+  word-break: break-all;
+}
+
+.mono {
+  font-size: 13px;
+}
+
+.link {
+  color: var(--color-success);
+}
+.link:hover {
+  color: var(--color-text);
+}
+
+.statusOk {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(108, 239, 75, 0.1);
+  border: 1px solid rgba(108, 239, 75, 0.3);
+  color: var(--color-success);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.method {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--color-text);
+}
+
+.amount {
+  font-weight: 700;
+}
+
+.symbol {
+  color: var(--color-success);
+  font-weight: 700;
+}
+
+.muted {
+  color: var(--color-muted);
+}
+
+.pre {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-text);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 320px;
+  overflow: auto;
+}
+
+@media (max-width: 720px) {
+  .table { display: block; }
+  .table tbody, .table tr { display: block; width: 100%; }
+  .label, .value { display: block; width: 100%; border-right: none; }
+  .label {
+    padding-bottom: 4px;
+  }
+  .value {
+    padding-top: 4px;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .row:last-child .value { border-bottom: none; }
+}
