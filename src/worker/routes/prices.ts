@@ -28,7 +28,7 @@ async function fetchUpstreamPrices(): Promise<PriceMap | null> {
         out[symbol.toLowerCase()] = entry.usd;
       }
     }
-    return out;
+    return Object.keys(out).length > 0 ? out : null;
   } catch (e) {
     console.error("[pfscan] price fetch error:", e);
     return null;

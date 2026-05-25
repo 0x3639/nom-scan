@@ -72,45 +72,6 @@ function txListPath(address: string, page: number, pageSize: number, sort: "asc"
   return `/api/address/${encodeURIComponent(address)}/transactions?page=${page}&page_size=${pageSize}&sort=${sort}`;
 }
 
-export interface AddressActivityBounds {
-  total: number | undefined;
-  firstTimestamp: number | null;
-  lastTimestamp: number | null;
-  isLoading: boolean;
-}
-
-/**
- * Fetch the oldest and newest tx for an address in parallel. Provides:
- *  - total: count of all txs (from pagination.total)
- *  - firstTimestamp / lastTimestamp: from the bound tx's momentum_timestamp
- *
- * Each request is a 1-row page; the upstream returns pagination.total alongside,
- * so we get a free count. Oldest tx (sort=asc page=1) is effectively immutable
- * and is cached aggressively on the Worker side.
- */
-export function useAddressActivityBounds(address: string): AddressActivityBounds {
-  const newest = useQuery({
-    queryKey: ["address", address, "bounds", "newest"],
-    queryFn: () => pfscanFetch<TxRow[]>(txListPath(address, 1, 1, "desc")),
-    staleTime: STALE.address,
-    enabled: Boolean(address),
-  });
-  const oldest = useQuery({
-    queryKey: ["address", address, "bounds", "oldest"],
-    queryFn: () => pfscanFetch<TxRow[]>(txListPath(address, 1, 1, "asc")),
-    staleTime: 24 * 60 * 60 * 1000,
-    enabled: Boolean(address),
-  });
-  const newestRow = newest.data?.data[0];
-  const oldestRow = oldest.data?.data[0];
-  return {
-    total: newest.data?.pagination?.total,
-    firstTimestamp: oldestRow ? oldestRow.momentum_timestamp ?? oldestRow.timestamp ?? null : null,
-    lastTimestamp: newestRow ? newestRow.momentum_timestamp ?? newestRow.timestamp ?? null : null,
-    isLoading: newest.isLoading || oldest.isLoading,
-  };
-}
-
 export function useAddressTransactions(address: string, params: TxListParams) {
   const page = params.page ?? 1;
   const pageSize = params.pageSize ?? 25;

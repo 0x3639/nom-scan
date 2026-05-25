@@ -4,15 +4,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-This repository is pre-implementation. The only file is `PFSCAN_SPEC.md`, a detailed product spec for **PFScan** — a Zenon Network block explorer modeled on Blockscan's information architecture with Zenon Tools' visual language. There is no source code, build tooling, package manifest, or git history yet. Read `PFSCAN_SPEC.md` end-to-end before writing code; the rest of this file summarizes load-bearing decisions so they aren't lost or contradicted.
+This repository now contains the Phase 1/2 implementation for **PFScan**: a React + Cloudflare Worker Zenon Network explorer modeled on Blockscan's information architecture with Zenon Tools' visual language. `PFSCAN_SPEC.md` remains the product source of truth, and `PEER_REVIEW.md` records the latest senior-review findings and verification notes.
 
-## Architecture (as specified, not yet built)
+Implemented scope: scaffold, Worker proxy, shared API/types, dark theme tokens, home/search, address portfolio, address transactions, transaction detail, loading/empty/error states, price-feed valuation, and focused unit tests.
+
+Phase 3 auth/D1/watchlist work is not implemented yet. `/login`, `/account`, and `/account/watchlist` are intentional "Coming soon" stubs.
+
+## Architecture
 
 **Frontend:** React + TypeScript + Vite SPA. React Router for routes, TanStack Query for fetching/caching, lucide-react for icons. CSS variables for theme tokens. BigInt-safe helpers for all `Amount` values.
 
-**Hosting:** Cloudflare Workers with Static Assets (or Pages + Functions). The Worker serves the SPA and acts as an API proxy.
+**Hosting:** Cloudflare Worker with Static Assets via `@cloudflare/vite-plugin`. The Worker serves the SPA and acts as an API proxy.
 
-**Storage:** D1 for users/sessions/saved addresses/groups/labels; KV or Cache API for token metadata and short-lived response cache.
+**Storage:** No persistent PFScan storage yet. Future Phase 3 work should add D1 for users/sessions/saved addresses/groups/labels and KV/Cache API where useful.
 
 **Two-tier API model — this is non-negotiable:**
 - The React app calls a **PFScan Worker API** (e.g. `/api/address/:address/summary`, `/api/tx/:hash`, `/api/search`).
@@ -38,14 +42,13 @@ Dark-first theme matching `tools.zenon.info`. Theme tokens are enumerated in the
 
 Do **not** reuse Blockscan brand assets, logos, copy, or icons (explicit non-goal).
 
-## MVP Scope Boundaries
+## Scope Boundaries
 
-In-scope per spec: search, address portfolio, address transactions, transaction detail, email/passkey login, saved addresses with private labels and groups.
+Current implemented scope: public explorer pages and the Worker proxy. Phase 3 will add email/passkey login, saved addresses, private labels, groups, and D1-backed account features.
 
-Explicitly out of scope for MVP — do not build these unless asked:
+Do not build these unless asked:
 - Multi-chain support, Blockscan Chat, advanced analytics dashboards.
 - Token/pillar/project/momentum global search.
-- Fiat portfolio valuation (no approved price source yet — show `N/A` or hide the column).
 - Wallet-based auth.
 
 ## Open Questions
@@ -54,4 +57,9 @@ The spec ends with six unresolved questions (production indexer URL, www domain 
 
 ## Commands
 
-No build/test/lint commands exist yet — the project hasn't been scaffolded. Once Phase 1 begins (React + TS + Vite + Cloudflare Worker), update this section with the actual commands.
+- `npm run dev` — local Vite + Cloudflare Worker dev server.
+- `npm run typecheck` — TypeScript project-reference check.
+- `npm run build` — production client + Worker build.
+- `npm run lint` — ESLint flat-config check.
+- `npm test` — Vitest unit tests.
+- `npm run deploy:production` — build and deploy with the production Wrangler environment.

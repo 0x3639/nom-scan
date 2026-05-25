@@ -1,14 +1,13 @@
 import { useMemo } from "react";
-import type { AddressSummary as AddressSummaryData, BalanceEntry } from "@shared/api/pfscan";
-import { useAddressActivityBounds, useAddressBalances, useAddressSummary } from "../../api/queries";
+import type { BalanceEntry } from "@shared/api/pfscan";
+import { useAddressBalances, useAddressSummary } from "../../api/queries";
 import { formatAmount } from "@shared/format/amount";
 import { formatDate } from "@shared/format/time";
-
-const SUMMARY_DECIMALS = 4;
 import { Skeleton } from "../state/Skeleton";
 import { ErrorState } from "../state/ErrorState";
 import styles from "./AddressSummary.module.css";
 
+const SUMMARY_DECIMALS = 4;
 const ZNN_STANDARD = "zts1znnxxxxxxxxxxxxx9z4ulx";
 const QSR_STANDARD = "zts1qsrxxxxxxxxxxxxxmrhjll";
 
@@ -41,25 +40,13 @@ function pickBalances(balances: BalanceEntry[]): {
   return { znn, qsr, otherCount };
 }
 
-function readField(summary: AddressSummaryData | undefined, ...keys: string[]): unknown {
-  if (!summary) return undefined;
-  for (const k of keys) {
-    const v = (summary as Record<string, unknown>)[k];
-    if (v !== undefined && v !== null) return v;
-  }
-  return undefined;
-}
-
-function formatCount(value: unknown): string {
-  if (typeof value === "number") return value.toLocaleString();
-  if (typeof value === "string" && /^\d+$/.test(value)) return Number(value).toLocaleString();
-  return "—";
+function formatCount(value: number | undefined | null): string {
+  return typeof value === "number" ? value.toLocaleString() : "—";
 }
 
 export function AddressSummary({ address }: Props) {
   const summary = useAddressSummary(address);
   const balances = useAddressBalances(address);
-  const bounds = useAddressActivityBounds(address);
 
   const named = useMemo(
     () => (balances.data ? pickBalances(balances.data) : { znn: null, qsr: null, otherCount: 0 }),
@@ -68,8 +55,12 @@ export function AddressSummary({ address }: Props) {
 
   if (summary.isError) return <ErrorState error={summary.error} retry={() => void summary.refetch()} />;
 
-  const producedCount = readField(summary.data, "block_count", "account_block_count");
-  const delegate = readField(summary.data, "delegate", "delegation");
+  const data = summary.data;
+  const blockCount = typeof data?.block_count === "number" ? data.block_count : undefined;
+  const txCount = typeof data?.tx_count === "number" ? data.tx_count : undefined;
+  const firstSeen = typeof data?.first_seen === "number" ? data.first_seen : null;
+  const lastSeen = typeof data?.last_seen === "number" ? data.last_seen : null;
+  const delegate = typeof data?.delegate === "string" ? data.delegate : null;
 
   return (
     <section className={styles.grid} aria-label="Address summary">
@@ -86,35 +77,31 @@ export function AddressSummary({ address }: Props) {
         label="Blocks"
         title="Account-blocks this address signed (sender side). Excludes paired-receive blocks where this address is the recipient."
       >
-        {summary.isLoading ? <Skeleton width={70} height={18} /> : <Value mono>{formatCount(producedCount)}</Value>}
+        {summary.isLoading ? <Skeleton width={70} height={18} /> : <Value mono>{formatCount(blockCount)}</Value>}
       </Card>
       <Card
         label="Transactions"
         title="All account-blocks where this address appears, including paired-receive blocks. Matches the count in the Transactions tab."
       >
-        {bounds.isLoading && bounds.total === undefined ? (
-          <Skeleton width={70} height={18} />
-        ) : (
-          <Value mono>{bounds.total != null ? bounds.total.toLocaleString() : "—"}</Value>
-        )}
+        {summary.isLoading ? <Skeleton width={70} height={18} /> : <Value mono>{formatCount(txCount)}</Value>}
       </Card>
       <Card label="First active">
-        {bounds.isLoading && bounds.firstTimestamp == null ? (
+        {summary.isLoading ? (
           <Skeleton width={130} height={16} />
         ) : (
-          <Value muted>{bounds.firstTimestamp != null ? formatDate(bounds.firstTimestamp) : "—"}</Value>
+          <Value muted>{firstSeen != null ? formatDate(firstSeen) : "—"}</Value>
         )}
       </Card>
       <Card label="Last active">
-        {bounds.isLoading && bounds.lastTimestamp == null ? (
+        {summary.isLoading ? (
           <Skeleton width={130} height={16} />
         ) : (
-          <Value muted>{bounds.lastTimestamp != null ? formatDate(bounds.lastTimestamp) : "—"}</Value>
+          <Value muted>{lastSeen != null ? formatDate(lastSeen) : "—"}</Value>
         )}
       </Card>
       {delegate ? (
         <Card label="Delegate" wide>
-          <Value mono muted>{String(delegate)}</Value>
+          <Value mono muted>{delegate}</Value>
         </Card>
       ) : null}
     </section>

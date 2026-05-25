@@ -1,6 +1,6 @@
 import type { RouteHandler } from "../router";
 import { nomIndexerFetch } from "../upstream";
-import { ok, err } from "../respond";
+import { ok, err, errorFromThrown } from "../respond";
 import { UpstreamError } from "../errors";
 import { detectQueryType, normalizeAddress, normalizeHash } from "@shared/validate/identifier";
 import type { SearchResult } from "@shared/api/pfscan";
@@ -53,7 +53,7 @@ export const getSearch: RouteHandler = async (request, env) => {
     return ok<SearchResult>({ kind: "not_found" });
   } catch (e) {
     if (e instanceof UpstreamError) {
-      return err("upstream_error", "Search upstream failed.", e.status);
+      return errorFromThrown(e);
     }
     console.error("[pfscan] search error:", e);
     return err("internal", "Something went wrong.", 500);

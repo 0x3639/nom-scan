@@ -9,7 +9,7 @@ export function Home() {
       </h1>
       <p className={styles.tagline}>Zenon Explorer · Portfolio · Transactions</p>
       <div className={styles.searchHolder}>
-        <SearchInput autoFocus placeholder="Search by Address or Hash" />
+        <SearchInput autoFocus enableShortcut placeholder="Search by Address or Hash" />
       </div>
       <p className={styles.hint}>
         Press <kbd className={styles.kbd}>/</kbd> from anywhere to focus search.

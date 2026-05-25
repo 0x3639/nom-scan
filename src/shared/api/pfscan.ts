@@ -59,9 +59,14 @@ export interface TokenMeta {
 // ── Address summary ──────────────────────────────────────────────────────────
 export interface AddressSummary {
   address: string;
-  account_block_count?: number;
-  first_seen?: string;
-  last_seen?: string;
+  /** Account-blocks this address produced (sender side). */
+  block_count?: number;
+  /** Total account-blocks where this address appears (sender or paired recipient). */
+  tx_count?: number;
+  /** Unix-seconds timestamp of the earliest such block. */
+  first_seen?: number | null;
+  /** Unix-seconds timestamp of the most recent such block. */
+  last_seen?: number | null;
   delegate?: string | null;
   // The Worker proxies the upstream account object directly; unknown fields are
   // preserved so the React layer can opportunistically render them.

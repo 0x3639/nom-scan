@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search as SearchIcon } from "lucide-react";
 import { detectQueryType, normalizeHash } from "@shared/validate/identifier";
@@ -8,10 +8,17 @@ interface Props {
   compact?: boolean;
   placeholder?: string;
   autoFocus?: boolean;
+  enableShortcut?: boolean;
 }
 
-export function SearchInput({ compact = false, placeholder = "Search by Address or Hash", autoFocus = false }: Props) {
+export function SearchInput({
+  compact = false,
+  placeholder = "Search by Address or Hash",
+  autoFocus = false,
+  enableShortcut = false,
+}: Props) {
   const navigate = useNavigate();
+  const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState("");
 
@@ -21,6 +28,7 @@ export function SearchInput({ compact = false, placeholder = "Search by Address 
 
   // Global "/" focus shortcut.
   useEffect(() => {
+    if (!enableShortcut) return;
     function onKey(e: KeyboardEvent) {
       if (e.key !== "/") return;
       const target = e.target as HTMLElement | null;
@@ -32,7 +40,7 @@ export function SearchInput({ compact = false, placeholder = "Search by Address 
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [enableShortcut]);
 
   function submit(e: FormEvent) {
     e.preventDefault();
@@ -56,10 +64,10 @@ export function SearchInput({ compact = false, placeholder = "Search by Address 
       className={`${styles.wrap} ${compact ? styles.compact : styles.hero}`}
       onSubmit={submit}
     >
-      <label className="visually-hidden" htmlFor="pfscan-search">Search</label>
+      <label className="visually-hidden" htmlFor={inputId}>Search</label>
       <SearchIcon className={styles.icon} size={compact ? 16 : 20} aria-hidden />
       <input
-        id="pfscan-search"
+        id={inputId}
         ref={inputRef}
         className={`${styles.input} mono`}
         type="search"

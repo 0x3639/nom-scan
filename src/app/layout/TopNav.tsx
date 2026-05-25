@@ -1,13 +1,15 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { SearchInput } from "../components/SearchInput";
 import { useStatus } from "../api/queries";
 import styles from "./TopNav.module.css";
 
 export function TopNav() {
+  const location = useLocation();
   const status = useStatus();
   const momentumHeight =
     status.data && typeof status.data === "object" && status.data !== null
-      ? (status.data as Record<string, unknown>)["momentum_height"] ??
+      ? (status.data as Record<string, unknown>)["latest_height"] ??
+        (status.data as Record<string, unknown>)["momentum_height"] ??
         (status.data as Record<string, unknown>)["height"] ??
         null
       : null;
@@ -21,7 +23,11 @@ export function TopNav() {
         </Link>
 
         <div className={styles.search}>
-          <SearchInput compact placeholder="Search by Address or Hash" />
+          <SearchInput
+            compact
+            enableShortcut={location.pathname !== "/"}
+            placeholder="Search by Address or Hash"
+          />
         </div>
 
         <div className={styles.right}>
