@@ -20,8 +20,8 @@ function messageForCode(code: PFScanErrorCode, retryAfter?: number): ErrorMessag
       return {
         title: "Too many requests",
         message: retryAfter
-          ? `PFScan is receiving too many requests. Try again in ${retryAfter}s.`
-          : "PFScan is receiving too many requests. Please retry shortly.",
+          ? `NoM Scan is receiving too many requests. Try again in ${retryAfter}s.`
+          : "NoM Scan is receiving too many requests. Please retry shortly.",
       };
     case "upstream_unavailable":
       return { title: "Indexer unavailable", message: "Indexer is syncing or temporarily unavailable." };

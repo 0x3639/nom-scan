@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-This repository now contains the Phase 1/2 implementation for **PFScan**: a React + Cloudflare Worker Zenon Network explorer modeled on Blockscan's information architecture with Zenon Tools' visual language. `PFSCAN_SPEC.md` remains the product source of truth, and `PEER_REVIEW.md` records the latest senior-review findings and verification notes.
+This repository now contains the Phase 1/2 implementation for **NoM Scan** (originally named "PFScan" — the display name was rebranded but technical identifiers like `pfscanFetch`, `PFScanResponse`, the `pfscan-local` Worker name, the npm package name, and the `PFSCAN_SPEC.md` / `PFSCAN_ENV` references were intentionally kept stable). It is a React + Cloudflare Worker Zenon Network explorer modeled on Blockscan's information architecture with Zenon Tools' visual language. `PFSCAN_SPEC.md` remains the product source of truth, and `PEER_REVIEW.md` records the latest senior-review findings and verification notes.
 
 Implemented scope: scaffold, Worker proxy, shared API/types, dark theme tokens, home/search, address portfolio, address transactions, transaction detail, loading/empty/error states, price-feed valuation, and focused unit tests.
 
@@ -16,10 +16,10 @@ Phase 3 auth/D1/watchlist work is not implemented yet. `/login`, `/account`, and
 
 **Hosting:** Cloudflare Worker with Static Assets via `@cloudflare/vite-plugin`. The Worker serves the SPA and acts as an API proxy.
 
-**Storage:** No persistent PFScan storage yet. Future Phase 3 work should add D1 for users/sessions/saved addresses/groups/labels and KV/Cache API where useful.
+**Storage:** No persistent NoM Scan storage yet. Future Phase 3 work should add D1 for users/sessions/saved addresses/groups/labels and KV/Cache API where useful.
 
 **Two-tier API model — this is non-negotiable:**
-- The React app calls a **PFScan Worker API** (e.g. `/api/address/:address/summary`, `/api/tx/:hash`, `/api/search`).
+- The React app calls a **NoM Scan Worker API** (e.g. `/api/address/:address/summary`, `/api/tx/:hash`, `/api/search`).
 - The Worker calls **nom-indexer-go** (`/api/v1/*`) with a Bearer JWT held as a Worker secret (`NOM_INDEXER_JWT`, `NOM_INDEXER_BASE_URL`).
 - The frontend must **never** call nom-indexer-go directly and the JWT must never appear in the browser bundle, network tab, or page source. This is in the acceptance criteria.
 

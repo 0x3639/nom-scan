@@ -25,7 +25,7 @@ export function mapUpstreamStatus(status: number): { code: PFScanErrorCode; user
   if (status === 429) {
     return {
       code: "rate_limited",
-      userMessage: "PFScan is receiving too many requests. Please retry shortly.",
+      userMessage: "NoM Scan is receiving too many requests. Please retry shortly.",
     };
   }
   if (status === 503) {

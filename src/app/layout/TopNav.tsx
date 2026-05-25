@@ -9,8 +9,8 @@ export function TopNav() {
   return (
     <header className={styles.nav}>
       <div className={`${styles.inner} ${isHome ? styles.innerHome : ""}`}>
-        <Link to="/" className={styles.brand} aria-label="PFScan home">
-          <span className={styles.brandMark}>PF</span>
+        <Link to="/" className={styles.brand} aria-label="NoM Scan home">
+          <span className={styles.brandMark}>NoM</span>
           <span className={styles.brandWord}>Scan</span>
         </Link>
 

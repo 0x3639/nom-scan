@@ -28,7 +28,7 @@
 .brand {
   display: inline-flex;
   align-items: baseline;
-  gap: 2px;
+  gap: 7px;
   font-weight: 700;
   font-size: 18px;
   letter-spacing: var(--tracking);

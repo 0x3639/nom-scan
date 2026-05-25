@@ -1,6 +1,6 @@
-# PFScan
+# NoM Scan
 
-A Zenon Network block explorer (search, address pages, transaction details). Built as a Cloudflare-hosted React SPA with a Cloudflare Worker that proxies authenticated requests to `nom-indexer-go`. See [`PFSCAN_SPEC.md`](./PFSCAN_SPEC.md) for the product spec and [`CLAUDE.md`](./CLAUDE.md) for the architectural cheat sheet.
+A Zenon Network block explorer (search, address pages, transaction details). Built as a Cloudflare-hosted React SPA with a Cloudflare Worker that proxies authenticated requests to `nom-indexer-go`. See [`PFSCAN_SPEC.md`](./PFSCAN_SPEC.md) for the original product spec (the codebase was rebranded from "PFScan" to "NoM Scan"; the spec filename and internal identifiers like `pfscanFetch`/`PFScanResponse` were kept for stability) and [`CLAUDE.md`](./CLAUDE.md) for the architectural cheat sheet.
 
 ## Local development
 

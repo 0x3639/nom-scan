@@ -5,7 +5,7 @@ export function Home() {
   return (
     <section className={styles.wrap}>
       <h1 className={styles.title}>
-        <span className={styles.titleMark}>PF</span>Scan
+        <span className={styles.titleMark}>NoM</span> Scan
       </h1>
       <p className={styles.tagline}>Zenon Explorer · Portfolio · Transactions</p>
       <div className={styles.searchHolder}>
