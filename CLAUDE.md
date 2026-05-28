@@ -20,7 +20,7 @@ Phase 3 auth/D1/watchlist work is not implemented yet. `/login`, `/account`, and
 
 **Two-tier API model — this is non-negotiable:**
 - The React app calls a **NoM Scan Worker API** (e.g. `/api/address/:address/summary`, `/api/tx/:hash`, `/api/search`).
-- The Worker calls **nom-indexer-go** (`/api/v1/*`) with a Bearer JWT held as a Worker secret (`NOM_INDEXER_JWT`, `NOM_INDEXER_BASE_URL`).
+- The Worker calls **nom-indexer-go** (`/api/v1/*`) with a Bearer JWT. The default path **mints** short-lived (5-min) HS256 JWTs from `NOM_INDEXER_JWT_SECRET` (a Worker secret); `NOM_INDEXER_JWT` is an optional pre-minted fallback. `NOM_INDEXER_BASE_URL` is the non-secret upstream URL and `NOM_INDEXER_JWT_SUBJECT` (default `pfscan`) is the subject claim. See `src/worker/jwt.ts`.
 - The frontend must **never** call nom-indexer-go directly and the JWT must never appear in the browser bundle, network tab, or page source. This is in the acceptance criteria.
 
 **nom-indexer-go contract facts that affect code:**

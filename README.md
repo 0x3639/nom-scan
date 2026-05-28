@@ -37,10 +37,19 @@ The Worker reads the same env var names regardless of environment — selection 
 
 ## Security
 
-The browser bundle must never contain the upstream JWT or signing secret. Verify after every release:
+The browser bundle must never contain the upstream JWT or signing secret, and no
+secret may be served as a static asset. `npm run deploy:production` runs
+`npm run check:assets` (see `scripts/check-deploy-assets.mjs`) before publishing,
+which scans the served asset tree for `NOM_INDEXER_*` secrets, the literal
+`.dev.vars` value, and Worker artifacts — and fails the deploy if any are found.
+
+Verify manually after a build (scan the **whole** `dist/client` tree, not just
+`client/`, since the Worker output dir is a sibling):
 
 ```sh
-npm run build && grep -rE "NOM_INDEXER_JWT|Bearer\s+eyJ|<your-secret>" dist/client/client/
+npm run build && npm run check:assets
+# or, ad hoc, grep for the real local secret value too:
+npm run build && grep -rIE "NOM_INDEXER_JWT_SECRET|Bearer\s+eyJ" dist/client/
 ```
 
-The grep should return nothing.
+`check:assets` should print a ✅ and the grep should return nothing.

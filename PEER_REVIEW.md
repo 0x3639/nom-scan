@@ -1,107 +1,216 @@
-# PFScan Peer Review
+# NoM Scan Peer Review
+
+_Refreshed 2026-05-28 (supersedes the prior review). Produced by a multi-agent
+audit (security, correctness, spec-adherence, accessibility, docs, test gaps)
+with adversarial verification, then re-verified by hand. Findings the verifier
+could not reproduce are listed under "Refuted / corrected" rather than as issues._
 
 ## Summary
 
-Ship with fixes. The core architecture is sound: React only calls the PFScan Worker API, the Worker owns nom-indexer-go auth, `npm run typecheck` and `npm run build` pass, and the built client bundle did not contain `NOM_INDEXER`, `Bearer eyJ`, or the local signing secret. I found no critical security leaks, but there were several correctness/accessibility/tooling issues worth fixing before calling Phases 1/2 merged.
+The core architecture is sound and the non-negotiable constraints hold:
 
-Follow-up status: the concrete Medium and Low / Nit implementation findings below have been fixed in the working tree. The only remaining item is the open JWT-scope question for the upstream auth contract.
+- **Two-tier boundary intact.** The React app references neither `/api/v1/*`,
+  `NOM_INDEXER`, nor `Bearer` (`grep -rn … src/app` → nothing). All upstream
+  calls flow through `src/worker/upstream.ts`, which attaches
+  `Authorization: Bearer ${getNomIndexerJwt(env)}`. The **browser-served** bundle
+  (`dist/client/client/`) contains no secret, token, or upstream path.
+- **Amounts stay strings** end-to-end; the only lossy `Number()` is isolated to
+  USD display (`money.rawToNumber`).
+- **Worker clamps `page_size` to 200**; **hash-tab state survives refresh**;
+  **`/tx/:hash`** routing matches the spec.
 
-Verification run:
+This pass found no live critical leak. The most consequential finding — that a
+production deploy could publish the upstream signing secret — was **downgraded on
+verification**: the live deploy path uses the Vite/Cloudflare plugin's redirect
+config, which serves the clean `dist/client/client` subdir, not the parent. It is
+nevertheless now hardened (see Critical, below, marked FIXED). The remaining
+findings are medium-and-below: a cluster of WCAG gaps, low/info correctness nits,
+broken test infrastructure, and documentation drift — **most are fixed in this
+pass** and tagged `[FIXED]`.
 
-- `npm run typecheck` passed.
-- `npm run build` passed.
-- `grep -rE "NOM_INDEXER|Bearer\s+eyJ" dist/client/client/` returned no matches.
-- Grep for the literal local `NOM_INDEXER_JWT_SECRET` value in `dist/client/client/` returned no matches.
-- `npm run lint` passed after adding an ESLint flat config.
-- `npm test` passed after adding focused unit tests.
-- Local dev server starts at `http://127.0.0.1:5173/` when run with elevated sandbox permissions. A homepage HEAD request returned 200, and `/api/prices` returned a valid PFScan envelope.
+## Verification (this pass)
+
+- `npm run typecheck` — passes
+- `npm run lint` — passes
+- `npm test` — **77 passing** (was ~10), across the `unit` + `worker` projects
+- `npm run test:worker` — now resolves (39 passing)
+- `npm run build` — passes
+- `npm run check:assets` — ✅ clean; served tree has no secrets/Worker artifacts
+- `grep -rIE "NOM_INDEXER|Bearer eyJ" dist/client/client/` — no matches
+
+---
 
 ## Critical
 
-None.
+### Worker artifacts (incl. a build-copied `.dev.vars`) were under the served assets parent  `[FIXED]`
+- **File:** `wrangler.jsonc` (`assets.directory`)
+- **Original concern:** the root config served the whole `./dist/client` tree —
+  the parent of both the browser-asset dir (`dist/client/client/`) and the Worker
+  output dir (`dist/client/pfscan_local/`), the latter containing a build-copied
+  `.dev.vars` with the live `NOM_INDEXER_JWT_SECRET`. The audit rated this
+  CRITICAL on the assumption that `deploy:production` deploys via the root config.
+- **Correction (verified):** `vite build` writes `.wrangler/deploy/config.json`,
+  which **redirects** `wrangler deploy` to the plugin-generated
+  `dist/client/pfscan_local/wrangler.json`. That config narrows assets to
+  `../client` (the clean browser dir), so the live deploy path never serves the
+  secret. Separately, `wrangler deploy --env production` **errors** under that
+  redirect (you must select the environment via the build tool, not `--env`) — so
+  the documented command would fail before publishing anything. So the leak was
+  **latent/defensive**, not live, and downgraded from critical.
+- **Fix applied:** narrowed the root `assets.directory` to `./dist/client/client`
+  (matching the plugin) so the root config is safe regardless of how wrangler is
+  invoked; added `scripts/check-deploy-assets.mjs` (wired into
+  `deploy:production` via `npm run check:assets`) that scans the served tree for
+  `NOM_INDEXER_*` secrets, the literal `.dev.vars` value, and Worker artifacts and
+  fails the deploy if any are present.
+- **Still open (separate issue):** `deploy:production` uses `--env production`,
+  which is incompatible with the plugin redirect. The production deploy flow needs
+  to select the environment via the Vite plugin instead — this is tied to spec
+  Open Question #1 (production indexer URL is still a `REPLACE-ME` placeholder), so
+  no production deploy is functional yet. **Resolve before the first deploy.**
+
+---
 
 ## High
 
 None.
 
+---
+
 ## Medium
 
-### Top nav never reads the actual status height
+### No global `:focus-visible` indicator  `[FIXED]`
+- **File:** `src/app/styles/global.css`
+- The reset stripped UA outlines from links/buttons and no global focus style
+  replaced it (only CopyButton/AddressTabs had their own). Added a global
+  `a/button/input/[tabindex]:focus-visible` outline (WCAG 2.4.7).
 
-- **File:** `src/app/layout/TopNav.tsx:8`
-- **Issue:** The status schema exposes `latest_height`, but `TopNav` only reads `momentum_height` and `height`.
-- **Impact:** The spec calls for current momentum height in the global shell, but production status responses from nom-indexer-go will leave the badge hidden.
-- **Suggested fix:** Read `latest_height` first, then keep the existing fallback fields if desired:
-  `["latest_height"] ?? ["momentum_height"] ?? ["height"]`.
+### Address page had no `<h1>`  `[FIXED]`
+- **File:** `src/app/components/address/AddressHeader.tsx`
+- The page heading was a styled `<span>`; every other page has an `<h1>`. Now an
+  `<h1>` (margin/weight reset preserves the small-caps look). WCAG 1.3.1 / 2.4.6.
 
-### Empty price-feed success can keep stale prices alive indefinitely
+### No skip-to-content link  `[FIXED]`
+- **File:** `src/app/layout/RootLayout.tsx`
+- Added a visually-hidden-until-focused "Skip to content" link targeting
+  `<main id="main" tabIndex={-1}>` (WCAG 2.4.1).
 
-- **File:** `src/worker/routes/prices.ts:17`
-- **Issue:** `fetchUpstreamPrices()` returns `{}` for a successful upstream response with no usable prices. Later, `if (upstream)` treats that empty object as fresh data and refreshes the last-known-good cache at lines 86-87.
-- **Impact:** If `api.zenon.info/price` starts returning `{"data": {}}`, PFScan will keep serving old prices and extend their 5-minute TTL forever, hiding the feed failure.
-- **Suggested fix:** Treat an empty parsed price map as `null`, or gate the last-known refresh on `Object.keys(upstream).length > 0`.
+### Fiat "Value (USD)" column shipped without recording approval of Open Question #6  `[OPEN — needs user decision]`
+- **File:** `src/app/components/address/PortfolioTab.tsx`
+- The USD column + portfolio total (fed by `api.zenon.info/price`) is permitted by
+  the spec's operative line ("…unless a price source is integrated"), so this is a
+  **process/documentation** gap, not a code defect: Open Question #6 ("approved
+  price source?") is still listed UNRESOLVED in `PFSCAN_SPEC.md`. **Action:**
+  confirm `api.zenon.info/price` is acceptable and mark Q6 resolved in the spec, or
+  gate the column behind a flag / `N/A`.
 
-### Search route drops upstream error semantics
+---
 
-- **File:** `src/worker/routes/search.ts:54`
-- **Issue:** Non-404 `UpstreamError`s are returned as `code: "upstream_error"` for every status, with the upstream status copied into the response.
-- **Impact:** Search-specific 401/403, 429, and 503 responses lose the shared mappings and `Retry-After` behavior used by other routes. A rate-limited search becomes an "Indexer error" in the UI instead of a retryable rate-limit state.
-- **Suggested fix:** Reuse `errorFromThrown(e)` for `UpstreamError`, or call `mapUpstreamStatus` and preserve `retryAfterSeconds` in `err()`.
+## Low
 
-### Search inputs duplicate DOM ids and shortcut listeners
+- **API JSON lacked `nosniff` / `Referrer-Policy`**  `[FIXED]` — `src/worker/respond.ts`.
+  Added `X-Content-Type-Options: nosniff` and `Referrer-Policy` to `JSON_HEADERS`
+  (the HTML-only header wrapper skipped API responses). _Note: the audit's claim
+  that error bodies are query-reflective was refuted — all `err()` messages are
+  static literals._
+- **Worker routes proxied unvalidated identifiers**  `[FIXED]` —
+  `src/worker/routes/address.ts`, `tx.ts`. Now validate with `isAddress()` /
+  `isHash()` and return a local 400 for malformed input (saves the shared
+  60 req/min budget; no SSRF/injection existed — params are `encodeURIComponent`'d
+  against a fixed base URL).
+- **Address regex accepted wrong/over-length strings**  `[FIXED]` —
+  `src/shared/validate/identifier.ts`. Pinned `ADDRESS_RE` to a fixed 38-char body
+  (`{38}`) instead of `{37,}`.
+- **Phantom Next on an exactly-full final page**  `[FIXED]` —
+  `src/app/components/address/TransactionsTab.tsx`. When upstream omits
+  `pagination.total`, a final page of exactly 50 rows left Next enabled; clicking
+  it showed a blank table. Now any empty page renders a graceful "No more
+  transactions" state with a Back control.
+- **Incomplete ARIA tabs pattern**  `[FIXED]` — `AddressTabs.tsx` /
+  `AddressPage.tsx`. Added `id`/`aria-controls` to each tab and a
+  `role="tabpanel"` wrapper with `aria-labelledby`.
+- **Pagination tap targets below recommended size on mobile**  `[FIXED]` —
+  `Pagination.module.css`. Added a ≤640px rule bumping `.btn`/`.pageInput` to
+  `min-height: 40px` (passes WCAG 2.5.8 AA; the buttons were not a hard failure).
+- **Momentum height not in the global shell**  `[OPEN — intentional]` —
+  `src/app/layout/TopNav.tsx`. `MomentumBadge` renders only on the address page;
+  the spec describes it "on every page". The relocation was deliberate (commit
+  `c6ca707`). **Action:** update `PFSCAN_SPEC.md` to match, or re-mount it in the
+  shell. (Left as-is; low priority.)
 
-- **File:** `src/app/components/SearchInput.tsx:59`
-- **Issue:** Every `SearchInput` renders `id="pfscan-search"` and installs a global `/` key listener. On the home page, both the top-nav search and hero search are mounted.
-- **Impact:** Duplicate ids break label/input association, and pressing `/` can fire multiple handlers with focus ending on whichever instance runs last. This is an accessibility and UX bug.
-- **Suggested fix:** Generate ids with `useId()` or accept an `id` prop. Add an `enableShortcut` or `shortcutPriority` prop so only one mounted search box owns the global `/` shortcut.
+---
 
-### Tabs use ARIA tab roles without keyboard navigation
+## Info (consistency)
 
-- **File:** `src/app/components/address/AddressTabs.tsx:17`
-- **Issue:** Inactive tabs have `tabIndex={-1}`, but there are no ArrowLeft/ArrowRight/Home/End handlers to move focus between tabs.
-- **Impact:** Keyboard users can tab to the active tab only and cannot reach the inactive tab through standard tab navigation. That violates the expected behavior once `role="tablist"`/`role="tab"` is used.
-- **Suggested fix:** Either implement roving-focus keyboard handling for the tablist, or remove the ARIA tab roles and keep both buttons normally tabbable.
+- **`SearchInput` address branch**  `[FIXED]` — now uses `normalizeAddress(q)` for
+  symmetry with the hash branch (no-op today; `normalizeAddress` only trims).
+- **`useAddressTransactions` default `pageSize`**  `[FIXED]` — aligned to 50 (was a
+  dead `25`) to prevent drift from the Worker default / UI `PAGE_SIZE`.
+- **Relative-age uses fixed 30-day months / 365-day years**  `[WONTFIX]` —
+  `src/shared/format/time.ts`. Cosmetic drift in the "_mo/_y ago_" badge only;
+  the industry-standard approximation. Left as-is.
 
-## Low / Nit
+---
 
-### Lint script is currently unusable
+## Refuted / corrected
 
-- **File:** `package.json:12`
-- **Issue:** `npm run lint` invokes ESLint 9, but the repo has no `eslint.config.js`.
-- **Impact:** Contributors and CI cannot run the advertised lint check.
-- **Suggested fix:** Add an ESLint flat config for TypeScript/React, or remove the script until the config exists.
+- **"Direction badge omits the spec's RECEIVE value"** — refuted. The spec offers
+  `RECEIVE` and `PAIR` as interchangeable for the same case; `IN` when `to_address`
+  matches the viewed address is exactly what the spec prescribes. No defect.
+- **Critical leak severity** — corrected from critical to defensive (see Critical).
 
-### Test script fails because the suite is empty
+---
 
-- **File:** `package.json:13`
-- **Issue:** `npm test` exits with code 1 because Vitest finds no test files.
-- **Impact:** Any CI job that runs `npm test` will fail even though the lack of tests is currently expected.
-- **Suggested fix:** Add the first focused unit tests from the peer-review brief, or configure the script/CI to tolerate an empty suite until tests are committed.
+## Documentation
 
-### Architecture note is stale
+- **`CLAUDE.md` JWT auth**  `[FIXED]` — corrected to describe the real primary path
+  (mint HS256 from `NOM_INDEXER_JWT_SECRET`; `NOM_INDEXER_JWT` is the fallback;
+  `NOM_INDEXER_BASE_URL` is non-secret).
+- **`README.md` secret grep**  `[FIXED]` — dropped the meaningless `<your-secret>`
+  arm; now references `npm run check:assets` and grepping the **whole**
+  `dist/client` tree.
+- **`HANDOFF.md`**  `[FIXED]` — test-coverage status refreshed; corrected the
+  claim that `nom-indexer.d.ts` is gitignored (it is simply uncommitted).
+- **`src/shared/format/amount.ts`**  `[FIXED]` — `parseAmount` JSDoc now states it
+  is currently unused (read-only explorer).
+- **`PEER_REVIEW.md` / `PEER_REVIEW_SPEC.md`**  `[FIXED]` — restored (this file
+  refreshed; the spec restored unchanged), clearing the dead references.
 
-- **File:** `CLAUDE.md:7`
-- **Issue:** The file still says the repo is pre-implementation, has only `PFSCAN_SPEC.md`, and has no build/test/lint commands.
-- **Impact:** Future agents or reviewers may follow outdated guidance and miss the current React/Worker implementation.
-- **Suggested fix:** Update `CLAUDE.md` to describe the current Phase 1/2 implementation and the real command set.
+---
 
-### Activity bounds duplicate timestamp fallback logic
+## Test Coverage
 
-- **File:** `src/app/api/queries.ts:108`
-- **Issue:** `useAddressActivityBounds` reads `momentum_timestamp ?? timestamp` directly instead of using the shared `txTimestamp(tx)` helper.
-- **Impact:** Minor consistency drift; if timestamp compatibility changes, this code path can diverge from transaction table/detail behavior.
-- **Suggested fix:** Import and use `txTimestamp(oldestRow)` / `txTimestamp(newestRow)`.
+### Now (this pass)
+- `vitest.workspace.ts` defines a jsdom `unit` project and a node `worker` project
+  (with a Cache API polyfill in `tests/worker/setup.ts`); `npm run test:worker`
+  resolves. **77 tests** total.
+- Shared: `amount`, `money` (incl. edge branches), `time`, `address.truncateMiddle`,
+  `price-aliases`, `identifier` (incl. edges + length pinning), `direction`.
+- Worker: `respond` (envelope shaping + no-leak `errorFromThrown`), `errors`
+  (`mapUpstreamStatus` table), `jwt` (minting + **secret-non-leak** assertion),
+  `upstream.parseRetryAfter`, `address` clamp helpers (the max-200 contract),
+  `search` dispatch (mocked upstream), `address` routes (collection-vs-array,
+  precision-string passthrough, `getToken` failure isolation), `cache` read-through.
 
-## What looks good
+### Still recommended
+- **Playwright e2e:** create `playwright.config.ts` and a smoke spec — home (no nav
+  search), search dispatch to `/address` and `/tx`, address tab-hash survival
+  across reload, and a **network-isolation** assertion that no browser request hits
+  the indexer base URL or carries `Authorization: Bearer`. (`npm run test:e2e`
+  fails until the config exists.)
+- Optionally migrate the `worker` project to the full
+  `@cloudflare/vitest-pool-workers` pool for real `caches`/`ExecutionContext`
+  semantics (currently a lightweight polyfill).
 
-- The Worker boundary is clean: all nom-indexer-go calls go through Worker routes, and no upstream JWT or secret was found in the production client bundle.
-- `respond.ts` and the route handlers mostly honor the shared `{ ok, data }` / `{ ok: false, error }` envelope.
-- Path params used in upstream nom-indexer-go URLs are encoded with `encodeURIComponent`.
-- No `dangerouslySetInnerHTML` or raw HTML rendering paths were found. Transaction `data` and decoded input render as React text inside `<pre>`.
-- Amount formatting stays BigInt/string-based for chain amounts; lossy `Number()` conversion is isolated to USD display math.
-- Theme tokens match the `tools.zenon.info` direction closely, including Montserrat, dark surfaces, green primary actions, and the requested 1240px content width.
-- TanStack Query usage is straightforward, and token metadata fetching is deduped by query key rather than per-row fetches.
+---
 
-## Open questions for the implementer
+## Pre-deploy checklist
 
-1. Should minted nom-indexer-go JWTs include a `scope: "read"` claim? The OpenAPI description and CLI examples mention scoped tokens, while `src/worker/jwt.ts` currently mints only `sub`, `iat`, and `exp`.
+- [ ] `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` all pass
+- [ ] `npm run check:assets` prints ✅ (run automatically by `deploy:production`)
+- [ ] Resolve the `deploy:production --env production` redirect incompatibility
+      (select the env via the Vite plugin) and set the real `NOM_INDEXER_BASE_URL`
+      (Open Question #1)
+- [ ] Decide Open Question #6 (fiat price source) and record it in the spec
+- [ ] If any artifact containing `NOM_INDEXER_JWT_SECRET` was ever deployed/shared,
+      rotate the secret with the indexer team

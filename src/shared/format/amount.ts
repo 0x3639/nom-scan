@@ -56,7 +56,11 @@ export function formatAmount(
 
 /**
  * Inverse of formatAmount: parse a user-entered decimal string into a raw
- * integer string honoring the token's decimals. For future write paths.
+ * integer string honoring the token's decimals.
+ *
+ * NOTE: currently unused by the app — NoM Scan is a read-only explorer with no
+ * write paths. Kept (and unit-tested) for a future amount-entry surface; remove
+ * if that never materializes.
  */
 export function parseAmount(input: string, decimals: number): string {
   const trimmed = input.trim();
