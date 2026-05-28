@@ -8,7 +8,8 @@ interface FetchOptions {
   headers?: Record<string, string>;
 }
 
-function parseRetryAfter(header: string | null): number | null {
+// Exported for unit testing.
+export function parseRetryAfter(header: string | null): number | null {
   if (!header) return null;
   const asNumber = Number(header);
   if (Number.isFinite(asNumber)) return Math.max(0, Math.floor(asNumber));

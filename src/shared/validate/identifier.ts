@@ -1,6 +1,8 @@
 export type QueryType = "address" | "hash" | "ambiguous" | "invalid";
 
-const ADDRESS_RE = /^z1[02-9ac-hj-np-z]{37,}$/;
+// Zenon addresses are a fixed 40 chars: the `z1` prefix + a 38-char Bech32 body.
+// Pin the body length exactly so wrong-length / over-length strings don't pass.
+const ADDRESS_RE = /^z1[02-9ac-hj-np-z]{38}$/;
 const HEX64_RE = /^[0-9a-fA-F]{64}$/;
 
 /** Strips an optional 0x prefix and lowercases for hash lookup. */

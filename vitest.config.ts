@@ -1,6 +1,9 @@
 import { defineConfig } from "vitest/config";
 import path from "node:path";
 
+// Base config — shared resolve aliases. The actual test projects (a jsdom
+// "unit" project and a node "worker" project) are declared in
+// vitest.workspace.ts so `npm run test:worker` (--project worker) resolves.
 export default defineConfig({
   resolve: {
     alias: {
@@ -10,8 +13,6 @@ export default defineConfig({
     },
   },
   test: {
-    environment: "jsdom",
     globals: false,
-    include: ["tests/unit/**/*.test.ts", "src/**/*.test.ts", "src/**/*.test.tsx"],
   },
 });

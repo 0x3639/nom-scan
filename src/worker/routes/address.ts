@@ -16,13 +16,15 @@ const TX_CACHE_PAGE1_DESC_SECONDS = 5;
 const TX_CACHE_PAGE1_ASC_SECONDS = 24 * 60 * 60;
 const TX_CACHE_OLDER_SECONDS = 300;
 
-function clampPageSize(raw: string | null): number {
+// Exported for unit testing — the page_size max-200 clamp is a non-negotiable
+// upstream contract requirement.
+export function clampPageSize(raw: string | null): number {
   const n = Number.parseInt(raw ?? "", 10);
   if (!Number.isFinite(n) || n <= 0) return DEFAULT_PAGE_SIZE;
   return Math.min(n, MAX_PAGE_SIZE);
 }
 
-function clampPage(raw: string | null): number {
+export function clampPage(raw: string | null): number {
   const n = Number.parseInt(raw ?? "", 10);
   if (!Number.isFinite(n) || n <= 0) return 1;
   return n;
