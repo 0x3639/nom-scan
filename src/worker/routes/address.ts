@@ -3,6 +3,7 @@ import { nomIndexerFetch } from "../upstream";
 import { withCache } from "../cache";
 import { ok, err, errorFromThrown } from "../respond";
 import { getToken } from "../services/tokens";
+import { isAddress } from "@shared/validate/identifier";
 import type { AddressSummary, BalanceEntry, PFScanPagination, TxRow } from "@shared/api/pfscan";
 
 interface UpstreamCollection<T> {
@@ -32,7 +33,7 @@ export function clampPage(raw: string | null): number {
 
 export const getAddressSummary: RouteHandler = async (_request, env, _ctx, params) => {
   const address = params["address"] ?? "";
-  if (!address) return err("bad_request", "Missing address.", 400);
+  if (!isAddress(address)) return err("bad_request", "Invalid or missing address.", 400);
   try {
     const summary = await nomIndexerFetch<AddressSummary>(
       env,
@@ -46,7 +47,7 @@ export const getAddressSummary: RouteHandler = async (_request, env, _ctx, param
 
 export const getAddressBalances: RouteHandler = async (_request, env, _ctx, params) => {
   const address = params["address"] ?? "";
-  if (!address) return err("bad_request", "Missing address.", 400);
+  if (!isAddress(address)) return err("bad_request", "Invalid or missing address.", 400);
   try {
     const raw = await nomIndexerFetch<BalanceEntry[] | UpstreamCollection<BalanceEntry>>(
       env,
@@ -69,7 +70,7 @@ export const getAddressBalances: RouteHandler = async (_request, env, _ctx, para
 
 export const getAddressTransactions: RouteHandler = async (request, env, _ctx, params) => {
   const address = params["address"] ?? "";
-  if (!address) return err("bad_request", "Missing address.", 400);
+  if (!isAddress(address)) return err("bad_request", "Invalid or missing address.", 400);
 
   const url = new URL(request.url);
   const page = clampPage(url.searchParams.get("page"));

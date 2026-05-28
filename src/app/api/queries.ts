@@ -74,7 +74,9 @@ function txListPath(address: string, page: number, pageSize: number, sort: "asc"
 
 export function useAddressTransactions(address: string, params: TxListParams) {
   const page = params.page ?? 1;
-  const pageSize = params.pageSize ?? 25;
+  // Default matches the Worker's DEFAULT_PAGE_SIZE (50) and TransactionsTab's
+  // PAGE_SIZE so the hasNext heuristic / prefetch logic can't drift.
+  const pageSize = params.pageSize ?? 50;
   const sort = params.sort ?? "desc";
   return useQuery({
     queryKey: ["address", address, "transactions", page, pageSize, sort],

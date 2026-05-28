@@ -4,6 +4,10 @@ import { UpstreamError, mapUpstreamStatus } from "./errors";
 const JSON_HEADERS = {
   "Content-Type": "application/json; charset=utf-8",
   "Cache-Control": "no-store",
+  // Defense-in-depth: API JSON bypasses the HTML-only security-header wrapper
+  // in index.ts, so set these directly on every API response.
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
 };
 
 export function ok<T>(data: T, pagination?: PFScanPagination, init?: ResponseInit): Response {

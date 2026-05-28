@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search as SearchIcon } from "lucide-react";
-import { detectQueryType, normalizeHash } from "@shared/validate/identifier";
+import { detectQueryType, normalizeAddress, normalizeHash } from "@shared/validate/identifier";
 import styles from "./SearchInput.module.css";
 
 interface Props {
@@ -48,7 +48,7 @@ export function SearchInput({
     if (!q) return;
     const kind = detectQueryType(q);
     if (kind === "address") {
-      navigate(`/address/${q}#portfolios`);
+      navigate(`/address/${normalizeAddress(q)}#portfolios`);
     } else if (kind === "hash") {
       navigate(`/tx/${normalizeHash(q)}`);
     } else if (kind === "ambiguous") {

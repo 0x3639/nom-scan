@@ -36,8 +36,24 @@ export function TransactionsTab({ address }: Props) {
     );
   }
   if (q.isError) return <ErrorState error={q.error} retry={() => void q.refetch()} />;
-  if (rowsRaw.length === 0 && page === 1) {
-    return <EmptyState title="No transactions" message="This address has no recorded account-blocks." />;
+  // Empty on any page — not just page 1. When the upstream omits pagination.total,
+  // a final page that happens to be exactly full leaves Next enabled; clicking it
+  // lands here. Show a graceful "no more" state with a way back instead of an
+  // empty table.
+  if (rowsRaw.length === 0) {
+    return (
+      <div>
+        <EmptyState
+          title={page === 1 ? "No transactions" : "No more transactions"}
+          message={
+            page === 1
+              ? "This address has no recorded account-blocks."
+              : "You've reached the end of this address's history."
+          }
+        />
+        {page > 1 ? <Pagination page={page} hasNext={false} hasPrev onChange={setPage} /> : null}
+      </div>
+    );
   }
 
   return (

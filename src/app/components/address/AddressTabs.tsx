@@ -51,6 +51,8 @@ export function AddressTabs({ active, onChange }: Props) {
             tabRefs.current[index] = node;
           }}
           role="tab"
+          id={`tab-${t.id}`}
+          aria-controls={`panel-${t.id}`}
           aria-selected={active === t.id}
           tabIndex={active === t.id ? 0 : -1}
           className={`${styles.tab} ${active === t.id ? styles.active : ""}`}

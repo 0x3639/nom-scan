@@ -40,7 +40,9 @@ export function AddressPage() {
       <AddressHeader address={address} />
       <AddressSummary address={address} />
       <AddressTabs active={tab} onChange={setTab} />
-      {tab === "portfolios" ? <PortfolioTab address={address} /> : <TransactionsTab address={address} />}
+      <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} tabIndex={0}>
+        {tab === "portfolios" ? <PortfolioTab address={address} /> : <TransactionsTab address={address} />}
+      </div>
     </div>
   );
 }

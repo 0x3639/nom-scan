@@ -58,3 +58,14 @@
 .pageInput:focus {
   border-color: var(--color-primary);
 }
+
+/* Larger touch targets on mobile, matching the search/nav controls. */
+@media (max-width: 640px) {
+  .btn {
+    min-height: 40px;
+    padding: 8px 12px;
+  }
+  .pageInput {
+    min-height: 40px;
+  }
+}

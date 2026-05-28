@@ -10,7 +10,7 @@ export function AddressHeader({ address }: Props) {
   return (
     <header className={styles.wrap}>
       <div className={styles.top}>
-        <span className={styles.label}>Address</span>
+        <h1 className={styles.label}>Address</h1>
       </div>
       <div className={styles.row}>
         <span className={`${styles.value} mono ${styles.full}`} title={address}>{address}</span>
