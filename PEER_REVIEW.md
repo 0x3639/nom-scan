@@ -192,12 +192,14 @@ None.
   `search` dispatch (mocked upstream), `address` routes (collection-vs-array,
   precision-string passthrough, `getToken` failure isolation), `cache` read-through.
 
+- **Playwright e2e**  `[ADDED]` — `playwright.config.ts` + `e2e/smoke.spec.ts`
+  (5 specs): home (single search box), search dispatch to `/address` and `/tx`
+  (0x stripped/lowercased), address tab-hash survival across reload, and a
+  **network-isolation** assertion that the browser makes no cross-origin request
+  and carries no `Authorization` header (proving the two-tier boundary at the
+  browser layer). `npm run test:e2e` passes.
+
 ### Still recommended
-- **Playwright e2e:** create `playwright.config.ts` and a smoke spec — home (no nav
-  search), search dispatch to `/address` and `/tx`, address tab-hash survival
-  across reload, and a **network-isolation** assertion that no browser request hits
-  the indexer base URL or carries `Authorization: Bearer`. (`npm run test:e2e`
-  fails until the config exists.)
 - Optionally migrate the `worker` project to the full
   `@cloudflare/vitest-pool-workers` pool for real `caches`/`ExecutionContext`
   semantics (currently a lightweight polyfill).
