@@ -63,10 +63,10 @@ export function PortfolioTab({ address }: Props) {
             }
             return (
               <tr key={`${b.token_standard}-${idx}`}>
-                <td>{b.token?.name ?? "—"}</td>
-                <td className={styles.symbol}>{symbol ?? "—"}</td>
-                <td className="mono">{formatAmount(b.balance, decimals)}</td>
-                <td className="mono">
+                <td data-label="Token">{b.token?.name ?? "—"}</td>
+                <td data-label="Symbol" className={styles.symbol}>{symbol ?? "—"}</td>
+                <td data-label="Balance" className="mono">{formatAmount(b.balance, decimals)}</td>
+                <td data-label="Value (USD)" className="mono">
                   {value != null ? (
                     formatUsd(value)
                   ) : prices.isLoading ? (
@@ -75,7 +75,7 @@ export function PortfolioTab({ address }: Props) {
                     <span className={styles.muted}>—</span>
                   )}
                 </td>
-                <td className={`mono ${styles.standard}`} title={b.token_standard}>
+                <td data-label="Token Standard" className={`mono ${styles.standard}`} title={b.token_standard}>
                   {truncateMiddle(b.token_standard, 10, 6)}
                 </td>
               </tr>

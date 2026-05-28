@@ -58,16 +58,19 @@
 }
 
 .account {
-  padding: 6px 12px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 6px 14px;
   border-radius: var(--radius-sm);
   background: var(--color-primary);
-  color: var(--color-text);
+  color: var(--color-on-primary);
   font-weight: 700;
   font-size: 13px;
 }
 .account:hover {
   background: var(--color-primary-hover);
-  color: var(--color-text);
+  color: var(--color-on-primary);
 }
 
 @media (max-width: 640px) {

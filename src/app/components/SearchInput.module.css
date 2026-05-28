@@ -60,20 +60,25 @@
 }
 
 .submit {
-  padding: 6px 14px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 6px 16px;
   border-radius: var(--radius-sm);
   background: var(--color-primary);
-  color: var(--color-text);
+  color: var(--color-on-primary);
   font-weight: 700;
   font-size: 13px;
 }
 .submit:hover {
   background: var(--color-primary-hover);
+  color: var(--color-on-primary);
 }
 
 @media (max-width: 640px) {
   .submit {
-    padding: 6px 10px;
+    min-height: 40px;
+    padding: 6px 14px;
   }
   .kbd { display: none; }
 }

@@ -51,7 +51,7 @@ input, select, textarea {
 }
 
 ::selection {
-  background: var(--color-primary);
+  background: color-mix(in srgb, var(--color-success) 30%, transparent);
   color: var(--color-text);
 }
 

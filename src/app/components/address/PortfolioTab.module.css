@@ -100,10 +100,35 @@
     padding: 8px 0;
   }
   .table td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
     border: none !important;
     padding: 4px 12px;
   }
+  /* Surface the column name (the hidden thead) as an inline label per row. */
+  .table td[data-label]::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    color: var(--color-subtle);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
   .table td.numeric {
     text-align: left;
+  }
+  /* Total row: drop the now-redundant label/empty cells, label the value. */
+  .totalRow td.totalLabel,
+  .totalRow td:empty { display: none; }
+  .totalRow td.totalValue::before {
+    content: "Portfolio total";
+    color: var(--color-subtle);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 }
