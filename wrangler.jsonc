@@ -10,8 +10,12 @@
     "NOM_INDEXER_JWT_SUBJECT": "pfscan",
     "PFSCAN_ENV": "local"
   },
+  // Serve ONLY the browser-asset subdir, never the parent ./dist/client — the
+  // parent also holds the Worker output dir (dist/client/pfscan_local/), which
+  // includes the build-copied .dev.vars secret. Pointing at ./dist/client/client
+  // matches the Vite/Cloudflare plugin's own generated config ("../client").
   "assets": {
-    "directory": "./dist/client",
+    "directory": "./dist/client/client",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application"
   },
