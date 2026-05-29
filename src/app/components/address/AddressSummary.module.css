@@ -1,10 +1,18 @@
 .grid {
   display: grid;
   /* 140px min lets all 7 summary cards fit on one row at desktop content width
-     (1240px). On narrower viewports auto-fit wraps naturally. */
+     (1240px). On narrower viewports auto-fit wraps naturally. The full-width
+     Delegate card is rendered OUTSIDE this grid (see .belowGrid) — a card
+     spanning 1/-1 would occupy every track and stop auto-fit from collapsing the
+     trailing empty track, leaving a gap at the end of the row. */
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 10px;
   margin-top: 16px;
+}
+
+/* Full-width rows (e.g. Delegate) sit below the stat grid, not inside it. */
+.belowGrid {
+  margin-top: 10px;
 }
 
 .card {
@@ -12,10 +20,6 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 12px 14px;
-}
-
-.cardWide {
-  grid-column: 1 / -1;
 }
 
 .cardLabel {
@@ -36,8 +40,4 @@
 .muted {
   font-weight: 500 !important;
   color: var(--color-muted) !important;
-}
-
-.fullRow {
-  grid-column: 1 / -1;
 }

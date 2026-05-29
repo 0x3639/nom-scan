@@ -63,7 +63,8 @@ export function AddressSummary({ address }: Props) {
   const delegate = typeof data?.delegate === "string" ? data.delegate : null;
 
   return (
-    <section className={styles.grid} aria-label="Address summary">
+    <section aria-label="Address summary">
+      <div className={styles.grid}>
       <Card label="ZNN balance">
         {balances.isLoading ? <Skeleton width={80} height={18} /> : <Value mono>{named.znn?.display ?? "0"}</Value>}
       </Card>
@@ -99,10 +100,13 @@ export function AddressSummary({ address }: Props) {
           <Value muted>{lastSeen != null ? formatDate(lastSeen) : "—"}</Value>
         )}
       </Card>
+      </div>
       {delegate ? (
-        <Card label="Delegate" wide>
-          <Value mono muted>{delegate}</Value>
-        </Card>
+        <div className={styles.belowGrid}>
+          <Card label="Delegate">
+            <Value mono muted>{delegate}</Value>
+          </Card>
+        </div>
       ) : null}
     </section>
   );
@@ -111,16 +115,14 @@ export function AddressSummary({ address }: Props) {
 function Card({
   label,
   children,
-  wide = false,
   title,
 }: {
   label: string;
   children: React.ReactNode;
-  wide?: boolean;
   title?: string;
 }) {
   return (
-    <div className={`${styles.card} ${wide ? styles.cardWide : ""}`} title={title}>
+    <div className={styles.card} title={title}>
       <div className={styles.cardLabel}>{label}</div>
       <div className={styles.cardValue}>{children}</div>
     </div>
