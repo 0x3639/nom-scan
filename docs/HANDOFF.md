@@ -2,7 +2,7 @@
 
 This is the doc to read first when picking the project back up after a break. It captures the current state, the load-bearing decisions, and where things live, so you don't have to reconstruct context from git log.
 
-For background: [`PFSCAN_SPEC.md`](./PFSCAN_SPEC.md) is the original product spec, [`README.md`](./README.md) is the dev-setup quickstart, [`CLAUDE.md`](./CLAUDE.md) is a terse architectural cheat sheet aimed at future Claude Code sessions, and [`PEER_REVIEW.md`](./PEER_REVIEW.md) is the Codex peer-review snapshot.
+For background: [`PFSCAN_SPEC.md`](./PFSCAN_SPEC.md) is the original product spec, [`README.md`](../README.md) is the dev-setup quickstart, [`CLAUDE.md`](../CLAUDE.md) is a terse architectural cheat sheet aimed at future Claude Code sessions, and [`PEER_REVIEW.md`](./PEER_REVIEW.md) is the Codex peer-review snapshot.
 
 ---
 

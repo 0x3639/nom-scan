@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-This repository now contains the Phase 1/2 implementation for **NoM Scan** (originally named "PFScan" — the display name was rebranded but technical identifiers like `pfscanFetch`, `PFScanResponse`, the `pfscan-local` Worker name, the npm package name, and the `PFSCAN_SPEC.md` / `PFSCAN_ENV` references were intentionally kept stable). It is a React + Cloudflare Worker Zenon Network explorer modeled on Blockscan's information architecture with Zenon Tools' visual language. `PFSCAN_SPEC.md` remains the product source of truth, and `PEER_REVIEW.md` records the latest senior-review findings and verification notes.
+This repository now contains the Phase 1/2 implementation for **NoM Scan** (originally named "PFScan" — the display name was rebranded but technical identifiers like `pfscanFetch`, `PFScanResponse`, the `pfscan-local` Worker name, the npm package name, and the `PFSCAN_SPEC.md` / `PFSCAN_ENV` references were intentionally kept stable). It is a React + Cloudflare Worker Zenon Network explorer modeled on Blockscan's information architecture with Zenon Tools' visual language. `docs/PFSCAN_SPEC.md` remains the product source of truth, and `docs/PEER_REVIEW.md` records the latest senior-review findings and verification notes. (Project docs live in `docs/`; `README.md` and this file stay in the repo root.)
 
 Implemented scope: scaffold, Worker proxy, shared API/types, dark theme tokens, home/search, address portfolio, address transactions, transaction detail, loading/empty/error states, price-feed valuation, and focused unit tests.
 
