@@ -54,7 +54,9 @@ export function TxDetailsTable({ tx }: Props) {
         </Row>
         <Row label="Momentum Height">
           {tx.momentum_height != null ? (
-            <Mono value={tx.momentum_height.toLocaleString()} />
+            <Link to={`/momentum/${tx.momentum_height}`} className={`mono ${styles.link}`}>
+              {tx.momentum_height.toLocaleString()}
+            </Link>
           ) : <span className={styles.muted}>—</span>}
         </Row>
         <Row label="Momentum Hash">
