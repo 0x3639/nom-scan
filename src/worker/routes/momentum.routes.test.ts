@@ -43,6 +43,14 @@ describe("getMomentum", () => {
     expect(body.data.previous_hash).toBe("hash99");
   });
 
+  it("strips commas from the height before building the upstream path", async () => {
+    vi.mocked(nomIndexerFetch).mockResolvedValue(M(12708298));
+    const res = await getMomentum(req(), env, ctx, { height: "12,708,298" });
+    expect(res.status).toBe(200);
+    expect(nomIndexerFetch).toHaveBeenCalledWith(env, "/api/v1/momentums/12708298");
+    expect(nomIndexerFetch).toHaveBeenCalledWith(env, "/api/v1/momentums/12708297");
+  });
+
   it("omits previous_hash at height 1 without fetching a previous momentum", async () => {
     vi.mocked(nomIndexerFetch).mockResolvedValue(M(1));
     const res = await getMomentum(req(), env, ctx, { height: "1" });

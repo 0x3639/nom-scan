@@ -1,7 +1,7 @@
 import type { RouteHandler } from "../router";
 import { nomIndexerFetch } from "../upstream";
 import { ok, err, errorFromThrown } from "../respond";
-import { isMomentumHeight } from "@shared/validate/identifier";
+import { isMomentumHeight, normalizeMomentum } from "@shared/validate/identifier";
 import type { MomentumDetail } from "@shared/api/pfscan";
 
 export const getMomentum: RouteHandler = async (_request, env, _ctx, params) => {
@@ -9,7 +9,9 @@ export const getMomentum: RouteHandler = async (_request, env, _ctx, params) => 
   if (!isMomentumHeight(heightStr)) {
     return err("bad_request", "Invalid or missing momentum height.", 400);
   }
-  const height = Number(heightStr);
+  // normalizeMomentum strips commas so a direct /api/momentum/12,708,298 hit
+  // doesn't Number()-coerce to NaN.
+  const height = Number(normalizeMomentum(heightStr));
 
   try {
     // Fetch the momentum and (when applicable) its predecessor in parallel.

@@ -47,4 +47,10 @@ describe("momentum height detection", () => {
   it("normalizeMomentum trims to the canonical digit string", () => {
     expect(normalizeMomentum("  77 ")).toBe("77");
   });
+
+  it("accepts and normalizes a comma-grouped height (display form)", () => {
+    expect(detectQueryType("12,708,298")).toBe("momentum");
+    expect(isMomentumHeight(" 12,708,298 ")).toBe(true);
+    expect(normalizeMomentum("12,708,298")).toBe("12708298");
+  });
 });

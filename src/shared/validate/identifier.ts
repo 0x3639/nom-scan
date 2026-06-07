@@ -31,12 +31,15 @@ export function isHash(q: string): boolean {
 }
 
 export function isMomentumHeight(q: string): boolean {
-  return MOMENTUM_RE.test(q.trim());
+  return MOMENTUM_RE.test(normalizeMomentum(q));
 }
 
-/** Trims to the canonical digit string. */
+/**
+ * Trims and strips thousands-separator commas to the canonical digit string,
+ * so a height pasted back in display form ("12,708,298") parses as 12708298.
+ */
 export function normalizeMomentum(input: string): string {
-  return input.trim();
+  return input.trim().replace(/,/g, "");
 }
 
 export function detectQueryType(q: string): QueryType {
