@@ -1,4 +1,4 @@
-import type { TxRow } from "@shared/api/pfscan";
+import type { TxRow } from "@shared/api/nomscan";
 
 export type DirectionBadge = "IN" | "OUT" | "SELF" | "PAIR";
 

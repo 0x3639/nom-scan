@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import type { MomentumDetail } from "@shared/api/pfscan";
+import type { MomentumDetail } from "@shared/api/nomscan";
 import { formatTimestamp } from "@shared/format/time";
 import styles from "../tx/TxDetailsTable.module.css";
 

@@ -1,11 +1,11 @@
 /**
- * Public PFScan API contract — shared between Worker and React app.
+ * Public NomScan API contract — shared between Worker and React app.
  * The Worker produces these shapes; the React app consumes them.
  *
  * Amounts are always strings (BigInt-safe). Never coerce with Number().
  */
 
-export type PFScanErrorCode =
+export type NomScanErrorCode =
   | "not_found"
   | "bad_request"
   | "upstream_auth"
@@ -14,22 +14,22 @@ export type PFScanErrorCode =
   | "upstream_error"
   | "internal";
 
-export interface PFScanPagination {
+export interface NomScanPagination {
   page: number;
   page_size: number;
   total?: number;
 }
 
-export interface PFScanError {
-  code: PFScanErrorCode;
+export interface NomScanError {
+  code: NomScanErrorCode;
   message: string;
   status: number;
   retryAfter?: number;
 }
 
-export type PFScanResponse<T> =
-  | { ok: true; data: T; pagination?: PFScanPagination }
-  | { ok: false; error: PFScanError };
+export type NomScanResponse<T> =
+  | { ok: true; data: T; pagination?: NomScanPagination }
+  | { ok: false; error: NomScanError };
 
 // ── Search ───────────────────────────────────────────────────────────────────
 export type SearchKind = "address" | "tx" | "momentum" | "not_found";

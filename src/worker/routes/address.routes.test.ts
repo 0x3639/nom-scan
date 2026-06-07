@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Env } from "../env";
-import type { BalanceEntry, TxRow } from "@shared/api/pfscan";
+import type { BalanceEntry, TxRow } from "@shared/api/nomscan";
 
 vi.mock("../upstream", () => ({ nomIndexerFetch: vi.fn() }));
 vi.mock("../services/tokens", () => ({ getToken: vi.fn() }));

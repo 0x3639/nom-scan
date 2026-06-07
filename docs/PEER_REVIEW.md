@@ -46,12 +46,12 @@ pass** and tagged `[FIXED]`.
 - **File:** `wrangler.jsonc` (`assets.directory`)
 - **Original concern:** the root config served the whole `./dist/client` tree —
   the parent of both the browser-asset dir (`dist/client/client/`) and the Worker
-  output dir (`dist/client/pfscan_local/`), the latter containing a build-copied
+  output dir (`dist/client/nomscan_local/`), the latter containing a build-copied
   `.dev.vars` with the live `NOM_INDEXER_JWT_SECRET`. The audit rated this
   CRITICAL on the assumption that `deploy:production` deploys via the root config.
 - **Correction (verified):** `vite build` writes `.wrangler/deploy/config.json`,
   which **redirects** `wrangler deploy` to the plugin-generated
-  `dist/client/pfscan_local/wrangler.json`. That config narrows assets to
+  `dist/client/nomscan_local/wrangler.json`. That config narrows assets to
   `../client` (the clean browser dir), so the live deploy path never serves the
   secret. Separately, `wrangler deploy --env production` **errors** under that
   redirect (you must select the environment via the build tool, not `--env`) — so
@@ -100,7 +100,7 @@ None.
 - The USD column + portfolio total (fed by `api.zenon.info/price`) is permitted by
   the spec's operative line ("…unless a price source is integrated"), so this is a
   **process/documentation** gap, not a code defect: Open Question #6 ("approved
-  price source?") is still listed UNRESOLVED in `PFSCAN_SPEC.md`. **Action:**
+  price source?") is still listed UNRESOLVED in `NOMSCAN_SPEC.md`. **Action:**
   confirm `api.zenon.info/price` is acceptable and mark Q6 resolved in the spec, or
   gate the column behind a flag / `N/A`.
 
@@ -135,7 +135,7 @@ None.
 - **Momentum height not in the global shell**  `[OPEN — intentional]` —
   `src/app/layout/TopNav.tsx`. `MomentumBadge` renders only on the address page;
   the spec describes it "on every page". The relocation was deliberate (commit
-  `c6ca707`). **Action:** update `PFSCAN_SPEC.md` to match, or re-mount it in the
+  `c6ca707`). **Action:** update `NOMSCAN_SPEC.md` to match, or re-mount it in the
   shell. (Left as-is; low priority.)
 
 ---

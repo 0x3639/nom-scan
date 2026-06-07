@@ -1,17 +1,17 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "pfscan-local",
+  "name": "nomscan-local",
   "main": "src/worker/index.ts",
   "compatibility_date": "2025-01-15",
   "compatibility_flags": ["nodejs_compat"],
 
   // Top-level config = local defaults. Use `.dev.vars` for local secrets.
   "vars": {
-    "NOM_INDEXER_JWT_SUBJECT": "pfscan",
-    "PFSCAN_ENV": "local"
+    "NOM_INDEXER_JWT_SUBJECT": "nomscan",
+    "NOMSCAN_ENV": "local"
   },
   // Serve ONLY the browser-asset subdir, never the parent ./dist/client — the
-  // parent also holds the Worker output dir (dist/client/pfscan_local/), which
+  // parent also holds the Worker output dir (dist/client/nomscan_local/), which
   // includes the build-copied .dev.vars secret. Pointing at ./dist/client/client
   // matches the Vite/Cloudflare plugin's own generated config ("../client").
   "assets": {
@@ -25,17 +25,17 @@
 
   "env": {
     "production": {
-      "name": "pfscan",
+      "name": "nomscan",
       // Production-only non-secret vars. Real NOM_INDEXER_BASE_URL goes here when known
       // (Spec Open Question #1). NOM_INDEXER_JWT_SECRET is set via:
       //   wrangler secret put NOM_INDEXER_JWT_SECRET --env production
       "vars": {
         "NOM_INDEXER_BASE_URL": "https://REPLACE-ME-PRODUCTION-INDEXER-URL",
-        "NOM_INDEXER_JWT_SUBJECT": "pfscan",
-        "PFSCAN_ENV": "production"
+        "NOM_INDEXER_JWT_SUBJECT": "nomscan",
+        "NOMSCAN_ENV": "production"
       },
       "routes": [
-        // { "pattern": "pfscan.com/*", "zone_name": "pfscan.com" }
+        // { "pattern": "nomscan.com/*", "zone_name": "nomscan.com" }
       ]
     }
   }

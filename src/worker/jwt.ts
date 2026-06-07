@@ -62,7 +62,7 @@ export async function getNomIndexerJwt(env: Env): Promise<string> {
   if (cached && cached.expiresAt - REFRESH_BEFORE_EXPIRY_SECONDS > now) {
     return cached.token;
   }
-  const subject = env.NOM_INDEXER_JWT_SUBJECT ?? "pfscan";
+  const subject = env.NOM_INDEXER_JWT_SUBJECT ?? "nomscan";
   const token = await mintHs256(env.NOM_INDEXER_JWT_SECRET, subject, TTL_SECONDS);
   cached = { token, expiresAt: now + TTL_SECONDS };
   return token;

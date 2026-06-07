@@ -1,12 +1,12 @@
-# PFScan Peer-Review Brief for Codex
+# NomScan Peer-Review Brief for Codex
 
-You are reviewing **PFScan**, a Zenon Network block explorer. The repo was scaffolded from scratch in this session and the current code represents **Phases 1 and 2** of an approved 4-phase plan. Your job: act as a senior peer reviewer and produce a findings document. Do not modify code unless explicitly asked.
+You are reviewing **NomScan**, a Zenon Network block explorer. The repo was scaffolded from scratch in this session and the current code represents **Phases 1 and 2** of an approved 4-phase plan. Your job: act as a senior peer reviewer and produce a findings document. Do not modify code unless explicitly asked.
 
 ---
 
 ## 1. Context — what was built and why
 
-- **Product spec:** `PFSCAN_SPEC.md` (~685 lines). The authoritative product description.
+- **Product spec:** `NOMSCAN_SPEC.md` (~685 lines). The authoritative product description.
 - **Architecture cheat sheet:** `CLAUDE.md` (concise, written for future Claude instances).
 - **Approved implementation plan:** `/Users/dfriestedt/.claude/plans/let-s-plan-to-build-witty-engelbart.md` if accessible; otherwise inferable from the code structure and the "Phase 1/Phase 2" tasks in `package.json` scripts and folder layout.
 - **Shape**: Cloudflare Worker + React SPA via the `@cloudflare/vite-plugin`, single project, single deploy target. The Worker serves the SPA *and* proxies authenticated requests to `nom-indexer-go` so the JWT never reaches the browser.
@@ -21,10 +21,10 @@ Mid-implementation, the user added several iterative requirements that landed in
 
 Read in this order — earlier files explain context for later ones:
 
-1. `PFSCAN_SPEC.md` — product spec. Skim sections "Data Integration", "Architecture", "Visual Design", "Security", "Acceptance Criteria".
+1. `NOMSCAN_SPEC.md` — product spec. Skim sections "Data Integration", "Architecture", "Visual Design", "Security", "Acceptance Criteria".
 2. `CLAUDE.md` — short architectural pointers.
 3. `wrangler.jsonc`, `package.json`, `vite.config.ts`, `tsconfig.app.json`, `tsconfig.worker.json` — build/runtime config.
-4. `src/shared/api/pfscan.ts` — the load-bearing public API contract between Worker and React.
+4. `src/shared/api/nomscan.ts` — the load-bearing public API contract between Worker and React.
 5. `src/worker/index.ts`, `router.ts`, `upstream.ts`, `jwt.ts`, `respond.ts`, `cache.ts`, `errors.ts` — Worker core.
 6. `src/worker/routes/*.ts` — endpoint handlers (status, search, address, tx, tokens, prices).
 7. `src/shared/format/{amount,address,time,money}.ts` and `src/shared/validate/identifier.ts`, `src/shared/logic/direction.ts` — pure helpers.
@@ -44,9 +44,9 @@ For each area below, list findings as severity-tagged items. Most areas have spe
 
 Check:
 - Run `npm run build` and then grep `dist/client/client/` for any occurrence of `NOM_INDEXER`, `Bearer eyJ`, or the literal value of `NOM_INDEXER_JWT_SECRET` from your local `.dev.vars` (do not include the value in any output you generate). All three must return nothing.
-- Static-asset directory layout: the bundle lives at `dist/client/client/` and the Worker artifact at `dist/client/pfscan_local/`. Verify no `.dev.vars` or env values leak into the **client** directory. (A `.dev.vars` copy in the Worker artifact directory is expected and not a leak.)
+- Static-asset directory layout: the bundle lives at `dist/client/client/` and the Worker artifact at `dist/client/nomscan_local/`. Verify no `.dev.vars` or env values leak into the **client** directory. (A `.dev.vars` copy in the Worker artifact directory is expected and not a leak.)
 - Confirm the Worker never echoes the JWT back in any response body (look at `src/worker/upstream.ts`, `src/worker/respond.ts`, and error paths in `src/worker/errors.ts`).
-- CSP: `src/worker/index.ts` applies a strict CSP only when `env.PFSCAN_ENV === "production"`. In `local`, no CSP is set so Vite's React Fast Refresh preamble works. Verify (a) the production CSP is sufficient for the *built* React bundle to run — particularly whether `script-src 'self'` blocks anything the bundle relies on, (b) `style-src 'self' 'unsafe-inline'` is necessary (we use CSS Modules; check whether Vite inlines styles in production), (c) the policy is missing any directive the spec requires.
+- CSP: `src/worker/index.ts` applies a strict CSP only when `env.NOMSCAN_ENV === "production"`. In `local`, no CSP is set so Vite's React Fast Refresh preamble works. Verify (a) the production CSP is sufficient for the *built* React bundle to run — particularly whether `script-src 'self'` blocks anything the bundle relies on, (b) `style-src 'self' 'unsafe-inline'` is necessary (we use CSS Modules; check whether Vite inlines styles in production), (c) the policy is missing any directive the spec requires.
 - XSS: any `dangerouslySetInnerHTML` in the codebase? It should be **zero**. Decoded input on the transaction detail page is rendered inside `<pre>` as plain text — confirm that path doesn't bypass React's escaping.
 - Input validation: every Worker route that takes a path param (address, hash, token standard) is `encodeURIComponent`'d into the upstream URL. Verify there's no path where untrusted input is concatenated raw.
 - Logging: `console.error` is used in the Worker. Verify nothing logs the JWT or the secret.
@@ -64,7 +64,7 @@ File: `src/worker/jwt.ts`.
 
 Files: `src/worker/respond.ts`, `src/worker/errors.ts`, `src/worker/upstream.ts`.
 
-- Envelope contract (`PFScanResponse<T>` in `src/shared/api/pfscan.ts`): every Worker route returns either `{ok:true, data, pagination?}` or `{ok:false, error: {code, message, status, retryAfter?}}`. Spot-check each route returns this shape.
+- Envelope contract (`NomScanResponse<T>` in `src/shared/api/nomscan.ts`): every Worker route returns either `{ok:true, data, pagination?}` or `{ok:false, error: {code, message, status, retryAfter?}}`. Spot-check each route returns this shape.
 - `errorFromThrown` logs the upstream error message server-side (which may include path detail) and returns a generic user-facing message. Confirm the user-facing message never includes the upstream's `detail` field unfiltered.
 - 429 handling: `parseRetryAfter` accepts both seconds-as-integer and HTTP-date. Verify the resulting `retryAfter` is correctly mirrored both in the JSON body **and** the `Retry-After` response header by `err()`.
 - Status code mapping in `mapUpstreamStatus`: 401/403 → `upstream_auth`, 404 → `not_found`, 429 → `rate_limited`, 503 → `upstream_unavailable`, ≥500 → `upstream_error`, ≥400 → `bad_request`. Is this complete? What about 400 with problem+json detail — are we losing information?
@@ -81,7 +81,7 @@ Files: `src/worker/cache.ts`, `src/worker/routes/prices.ts`, `src/worker/routes/
   Is this correct given upstream's offset-based pagination semantics? If tx count grows on page 1 and pushes the tail into page 2, our 5min cache on page 2 will serve a row that's now actually on page 3. Acceptable trade-off?
 - Prices: `src/worker/routes/prices.ts` has a non-trivial two-cache scheme:
   - Fresh cache (60s) under the request URL.
-  - Last-known-good cache (5min) under `https://pfscan.internal/_last-known-prices`.
+  - Last-known-good cache (5min) under `https://nomscan.internal/_last-known-prices`.
   - On upstream success: merge `{...lastKnown, ...upstream}` so upstream wins per-key and last-known fills gaps. Update both caches.
   - On upstream failure: serve last-known unchanged, do **not** update either cache (so stale data ages out within 5 minutes).
   - On both empty: return 503.
@@ -92,7 +92,7 @@ Files: `src/worker/cache.ts`, `src/worker/routes/prices.ts`, `src/worker/routes/
 
 Files: `src/app/api/client.ts`, `src/app/api/queries.ts`.
 
-- `pfscanFetch<T>` parses the response JSON, throws `PFScanFetchError` on `{ok:false}`. Confirm the response type narrows correctly when `ok:true`.
+- `nomscanFetch<T>` parses the response JSON, throws `NomScanFetchError` on `{ok:false}`. Confirm the response type narrows correctly when `ok:true`.
 - `useAddressTransactions`: `placeholderData: keepPreviousData` keeps the previous page visible while the next loads. `usePrefetchNextTransactions` warms page N+1 only if `hasNext`. Verify the `useEffect` deps are right (no stale closures over `params.page`).
 - `useTokens` dedups via `Set` and uses `useQueries` — confirm it doesn't re-fire for the same standard across the address page (the Portfolio tab and Transactions tab can both reference the same token standard, but they live on the same page so should share the same `useQuery` cache by key).
 - `useAddressActivityBounds`: two queries with `pageSize=1` (oldest + newest). Cheap. Verify the `staleTime` for the oldest is 24h (matches Worker TTL) and that we read `momentum_timestamp` correctly via the `txTimestamp` helper.
@@ -102,7 +102,7 @@ Files: `src/app/api/client.ts`, `src/app/api/queries.ts`.
 
 Files: `src/app/hooks/useHashTab.ts`, `src/app/router.tsx`, `src/app/pages/AddressPage.tsx`.
 
-- Direct nav to `/address/:addr#transactions` must activate the Transactions tab on first paint. There was a recent bug where strict CSP blocked Vite's preamble and React never mounted — verify the fix in `src/worker/index.ts` (`env.PFSCAN_ENV === "production"` gate) actually works in both local and production.
+- Direct nav to `/address/:addr#transactions` must activate the Transactions tab on first paint. There was a recent bug where strict CSP blocked Vite's preamble and React never mounted — verify the fix in `src/worker/index.ts` (`env.NOMSCAN_ENV === "production"` gate) actually works in both local and production.
 - `useHashTab` reads `useLocation().hash` and uses `useMemo` to derive the active tab. Test mentally for: empty hash, unknown hash (`#foo`), hash with query (`#transactions?x=1`), trailing slash.
 - Address validation in `AddressPage.tsx`: if `!isAddress(address)`, renders `NotFoundState`. The validation regex `/^z1[02-9ac-hj-np-z]{37,}$/` is intentionally permissive (Bech32-shaped). Confirm we never make upstream calls with a clearly-invalid address.
 - `setTab` in `useHashTab` calls `navigate({hash}, {replace:true})`. Verify back-button behavior isn't broken (tab clicks shouldn't pollute history).
@@ -118,7 +118,7 @@ Files: `src/shared/format/amount.ts`, `src/shared/format/money.ts`.
 
 ### 3.8 Spec alignment
 
-Compare the code against `PFSCAN_SPEC.md` § "Acceptance Criteria" (around line 626). Specifically:
+Compare the code against `NOMSCAN_SPEC.md` § "Acceptance Criteria" (around line 626). Specifically:
 
 - "A user can search a Zenon address from `/` and land on `/address/:address#portfolios`." ✓ verify in `src/app/components/SearchInput.tsx`.
 - "Address page has Portfolio and Transactions tabs matching the requested hash URLs." Tab IDs are `portfolios` (plural) and `transactions` — matches the spec's "Portfolio tab" but the hash is plural. Confirm consistent.
@@ -148,7 +148,7 @@ The spec also mandates several visual conventions (Montserrat, dark theme tokens
 - **Phase 3** code (auth, D1, watchlist, magic links). Route stubs are intentional.
 - **Phase 4** items: a11y deep pass, Lighthouse perf budgets, Sentry/analytics, preview env, optional portfolio sections (stakes, fusions, rewards, bridge wraps/unwraps).
 - **Test suites**: Vitest and Playwright are installed but no tests exist. Note this as a gap but don't write tests.
-- **OpenAPI codegen**: `npm run codegen:api` script exists but `src/shared/api/nom-indexer.d.ts` is not committed. Worker uses hand-written types from `src/shared/api/pfscan.ts`. This is by design.
+- **OpenAPI codegen**: `npm run codegen:api` script exists but `src/shared/api/nom-indexer.d.ts` is not committed. Worker uses hand-written types from `src/shared/api/nomscan.ts`. This is by design.
 - **Production deploy validation**: `env.production` block has a placeholder `NOM_INDEXER_BASE_URL`. Production CSP behavior can be reasoned about but not exercised.
 - **The `.dev.vars` file**: contains a real local-dev signing secret. Do not include the value in any review output.
 
@@ -183,7 +183,7 @@ To repro the previously-fixed CSP-vs-preamble bug (should now succeed): visit `h
 Produce a single markdown file at `PEER_REVIEW.md` in the repo root. Structure:
 
 ```markdown
-# PFScan Peer Review
+# NomScan Peer Review
 
 ## Summary
 <2-3 sentences. Overall posture: ship as-is / ship with fixes / hold.>
@@ -225,12 +225,12 @@ Keep findings concrete and actionable. "Refactor for clarity" without a specific
 
 - **`.dev.vars` is committed-shaped but gitignored.** It contains the local-dev signing secret. The user pasted it knowingly into the repo working dir; `.gitignore` keeps it out of version control.
 - **Two different account-block counts on the address page.** "Blocks" (from `account_summary.block_count`) is sender-side; "Transactions" (from `pagination.total`) includes paired-receive blocks. Both are correct; the labels disambiguate.
-- **Tab IDs are plural (`portfolios`, `transactions`).** Matches the Blockscan URL fragment convention referenced in `PFSCAN_SPEC.md`.
+- **Tab IDs are plural (`portfolios`, `transactions`).** Matches the Blockscan URL fragment convention referenced in `NOMSCAN_SPEC.md`.
 - **`FEATURE_FIAT_VALUES = false` is gone.** Initially we hid the value column behind a flag; now we have real prices from `api.zenon.info`, so the column is unconditional. The Portfolio total row renders only if at least one row has a price.
 - **WBTC → BTC alias** is intentional. See `src/shared/constants/price-aliases.ts`.
 - **Stale-fallback price merge** is intentional. See § 3.4 above.
 - **The Worker output dir contains `.dev.vars`** — this is wrangler emitting the local dev-only file, not a production leak. Production secrets ship via `wrangler secret put`.
-- **No `momentum_timestamp` in older tx-row code paths** — the spec used `timestamp`; the upstream uses `momentum_timestamp`. The `txTimestamp(tx)` helper in `src/shared/api/pfscan.ts` handles both.
+- **No `momentum_timestamp` in older tx-row code paths** — the spec used `timestamp`; the upstream uses `momentum_timestamp`. The `txTimestamp(tx)` helper in `src/shared/api/nomscan.ts` handles both.
 
 ---
 

@@ -2,15 +2,15 @@
 
 This is the doc to read first when picking the project back up after a break. It captures the current state, the load-bearing decisions, and where things live, so you don't have to reconstruct context from git log.
 
-For background: [`PFSCAN_SPEC.md`](./PFSCAN_SPEC.md) is the original product spec, [`README.md`](../README.md) is the dev-setup quickstart, [`CLAUDE.md`](../CLAUDE.md) is a terse architectural cheat sheet aimed at future Claude Code sessions, and [`PEER_REVIEW.md`](./PEER_REVIEW.md) is the Codex peer-review snapshot.
+For background: [`NOMSCAN_SPEC.md`](./NOMSCAN_SPEC.md) is the original product spec, [`README.md`](../README.md) is the dev-setup quickstart, [`CLAUDE.md`](../CLAUDE.md) is a terse architectural cheat sheet aimed at future Claude Code sessions, and [`PEER_REVIEW.md`](./PEER_REVIEW.md) is the Codex peer-review snapshot.
 
 ---
 
 ## 1. Where we are right now
 
 - **Implementation status:** Phases 1 and 2 of the approved 4-phase plan are merged into `main`. The public explorer (search, address pages with portfolio + transactions tabs, transaction detail page) is fully functional against a running local `nom-indexer-go`. Phase 3 (auth + D1 + watchlist via email magic links) and Phase 4 (a11y/perf deep passes, optional portfolio sections, preview env, analytics) are not started. Route stubs at `/login`, `/account`, `/account/watchlist` render "Coming soon" placeholders so the URLs are reserved.
-- **Display brand:** "NoM Scan". Internal identifiers stayed "PFScan"/"pfscan" — see [§ 7. Naming](#7-naming).
-- **Repo location on GitHub:** <https://github.com/0x3639/pfscan>.
+- **Name:** "NoM Scan" everywhere — display and all technical identifiers use `nomscan` (fully renamed from the original "PFScan"). See [§ 7. Naming](#7-naming).
+- **Repo location on GitHub:** <https://github.com/0x3639/nom-scan>.
 - **Tip of `main`:** four commits (initial, peer-review + perf, UI rebrand pass, footer link). Linear history, no merge commits.
 - **Quality gates** (all green at last check): `typecheck`, `lint`, `test` (10 tests), `build`, JWT-leak grep.
 
@@ -36,7 +36,7 @@ Common commands:
 | `npm run typecheck` | TypeScript project-reference check |
 | `npm run lint` | ESLint flat config |
 | `npm test` | Vitest unit tests |
-| `npm run codegen:api` | regenerate `src/shared/api/nom-indexer.d.ts` from the upstream OpenAPI (currently not committed — hand-written types live in `src/shared/api/pfscan.ts`) |
+| `npm run codegen:api` | regenerate `src/shared/api/nom-indexer.d.ts` from the upstream OpenAPI (currently not committed — hand-written types live in `src/shared/api/nomscan.ts`) |
 | `npm run deploy:production` | `wrangler deploy --env production` (production env vars/secrets must be configured first; see [§ 8. Deploying](#8-deploying)) |
 
 ---
@@ -54,7 +54,7 @@ Browser ──> Cloudflare Worker ──┤
 
 Key invariant the whole architecture exists to enforce: **the `NOM_INDEXER_JWT_SECRET` must never reach the browser**. Production deploys verify this with a `grep` over `dist/client/client/` (currently passes — see security checks below).
 
-**Two-tier API on purpose.** The React app talks only to PFScan's own `/api/*` shapes (`PFScanResponse<T>` envelope). The Worker translates to upstream calls. This keeps the upstream contract decoupled from the UI, lets us cache aggressively, lets us mint JWTs at the boundary, and lets us shape responses to fit React's needs (e.g. token enrichment, error mapping).
+**Two-tier API on purpose.** The React app talks only to NomScan's own `/api/*` shapes (`NomScanResponse<T>` envelope). The Worker translates to upstream calls. This keeps the upstream contract decoupled from the UI, lets us cache aggressively, lets us mint JWTs at the boundary, and lets us shape responses to fit React's needs (e.g. token enrichment, error mapping).
 
 **Three caching layers stacked:**
 
@@ -70,7 +70,7 @@ Key invariant the whole architecture exists to enforce: **the `NOM_INDEXER_JWT_S
 
 The browser also gets `placeholderData: keepPreviousData` on the transactions query, so paging forward shows the previous page faded until the new one arrives. And `usePrefetchNextTransactions` warms page N+1 in the background while you read page N. Together: Next click is usually instant.
 
-**Environment selection is deploy-time, not code-time.** The Worker reads the same env var names (`NOM_INDEXER_BASE_URL`, `NOM_INDEXER_JWT_SECRET`, `PFSCAN_ENV`) regardless of environment. Local values come from `.dev.vars`; production values come from `wrangler.jsonc env.production.vars` (non-secret) and `wrangler secret put ... --env production` (secrets). The only env-aware code branch is in `src/worker/index.ts` — strict CSP only applies when `PFSCAN_ENV === "production"` (in dev, CSP would block Vite's React Fast Refresh inline preamble and React never mounts).
+**Environment selection is deploy-time, not code-time.** The Worker reads the same env var names (`NOM_INDEXER_BASE_URL`, `NOM_INDEXER_JWT_SECRET`, `NOMSCAN_ENV`) regardless of environment. Local values come from `.dev.vars`; production values come from `wrangler.jsonc env.production.vars` (non-secret) and `wrangler secret put ... --env production` (secrets). The only env-aware code branch is in `src/worker/index.ts` — strict CSP only applies when `NOMSCAN_ENV === "production"` (in dev, CSP would block Vite's React Fast Refresh inline preamble and React never mounts).
 
 ---
 
@@ -82,7 +82,7 @@ src/
 │   ├── main.tsx               # bootstraps React + QueryClientProvider + RouterProvider
 │   ├── router.tsx             # createBrowserRouter, lazy routes, PageSuspense outlet
 │   ├── api/
-│   │   ├── client.ts          # pfscanFetch<T> — single entry point for /api/* calls
+│   │   ├── client.ts          # nomscanFetch<T> — single entry point for /api/* calls
 │   │   └── queries.ts         # all TanStack Query hooks (useAddressSummary, useAddressTransactions, etc.)
 │   ├── components/
 │   │   ├── SearchInput.tsx    # global search, drives hash/address dispatch
@@ -101,7 +101,7 @@ src/
 ├── worker/                    # Cloudflare Worker — runs at the edge
 │   ├── index.ts               # entry: router dispatch, ASSETS fallback, security headers
 │   ├── router.ts              # tiny URLPattern-based ApiRouter
-│   ├── env.d.ts               # typed Env (NOM_INDEXER_BASE_URL, _JWT_SECRET, _JWT, _JWT_SUBJECT, PFSCAN_ENV, ASSETS)
+│   ├── env.d.ts               # typed Env (NOM_INDEXER_BASE_URL, _JWT_SECRET, _JWT, _JWT_SUBJECT, NOMSCAN_ENV, ASSETS)
 │   ├── jwt.ts                 # HS256 minting via crypto.subtle; in-memory cache; pre-minted JWT fallback
 │   ├── upstream.ts            # nomIndexerFetch — attaches Bearer, parses JSON/problem+json
 │   ├── respond.ts             # ok(), err(), errorFromThrown — the {ok:true, data} / {ok:false, error} envelope
@@ -111,7 +111,7 @@ src/
 │   └── services/tokens.ts     # getToken(env, standard) with per-isolate memoization
 │
 └── shared/                    # used by both Worker and React via @shared/* path alias
-    ├── api/pfscan.ts          # PFScanResponse, error/pagination types, AddressSummary, TxRow, TxDetail, etc.
+    ├── api/nomscan.ts          # NomScanResponse, error/pagination types, AddressSummary, TxRow, TxDetail, etc.
     ├── validate/identifier.ts # detectQueryType, normalizeAddress, normalizeHash, isAddress, isHash
     ├── format/                # amount (BigInt-safe), money (USD), address (truncateMiddle), time (formatAge, formatDate, formatTimestamp)
     ├── logic/direction.ts     # getDirection(row, viewedAddress) → IN | OUT | SELF | PAIR
@@ -151,32 +151,27 @@ Each entry is the iteration as it happened — keeping this here so future-you k
 6. **User flags "two different account-block counts on the address page."** Diagnosis: `block_count` from the account is sender-only; `pagination.total` includes paired-receive blocks. Both correct, ambiguously labeled. Fix: relabel to "Blocks" and "Transactions" with tooltips; derive both from the existing data.
 7. **First/Last active populated by deriving from oldest/newest tx.** Two small `page_size=1` queries (asc + desc). Asc cached 24h (immutable).
 8. **User flags "Last active and Transactions counts still slow."** Diagnosis: the desc page=1 size=1 query was duplicating work with the main desc page=1 size=50 tx-list query. Tier 1 fix: rewrite `useAddressActivityBounds` to read from the same `useAddressTransactions(page=1, pageSize=50, sort=desc)` query — TanStack key-sharing.
-9. **Worked out a Tier 2 proposal** for the indexer team: add `first_seen`, `last_seen`, `tx_count` to `/accounts/{address}` as O(1) per-account state. Indexer team implemented it. Tier 2 fix in PFScan: delete `useAddressActivityBounds` entirely; `AddressSummary` reads `first_seen`/`last_seen`/`tx_count` straight from the summary endpoint. Now summary populates in ~50ms regardless of address size.
-10. **User flags "209k-tx address still slow."** Diagnosis: every `/transactions` call took 47s regardless of `page` or `page_size`, meaning the indexer was running `COUNT(*)` on every request. Asked the indexer team to source `pagination.total` from the cached `tx_count` counter. They did. **47s → 500ms.** PFScan code unchanged — pure indexer fix.
+9. **Worked out a Tier 2 proposal** for the indexer team: add `first_seen`, `last_seen`, `tx_count` to `/accounts/{address}` as O(1) per-account state. Indexer team implemented it. Tier 2 fix in NomScan: delete `useAddressActivityBounds` entirely; `AddressSummary` reads `first_seen`/`last_seen`/`tx_count` straight from the summary endpoint. Now summary populates in ~50ms regardless of address size.
+10. **User flags "209k-tx address still slow."** Diagnosis: every `/transactions` call took 47s regardless of `page` or `page_size`, meaning the indexer was running `COUNT(*)` on every request. Asked the indexer team to source `pagination.total` from the cached `tx_count` counter. They did. **47s → 500ms.** NomScan code unchanged — pure indexer fix.
 11. **Codex peer-review pass** (see `PEER_REVIEW.md`) caught and fixed: `TopNav.latest_height` field name, price-feed empty-success guard, search-route error mapping, `SearchInput` duplicate ids + competing `/` shortcuts, missing tab keyboard navigation, plus ESLint config + first unit tests + CLAUDE.md refresh.
-12. **UI rebrand** PFScan → NoM Scan (display only — every internal identifier stayed).
+12. **Rename** PFScan → NoM Scan / `nomscan` (initially display-only, later a full rename of every technical identifier — see [§ 7. Naming](#7-naming)).
 13. **Footer:** added Zenon Hub link alongside Zenon Network and Zenon Tools.
 
 ---
 
 ## 7. Naming
 
-The product was originally called "PFScan" (Proof Scan). It was renamed to **"NoM Scan"** late in development. The rename was display-only — every technical identifier stayed.
+The product was originally called "PFScan" (Proof Scan). The display name was first rebranded to **"NoM Scan"**, and the project was later **fully renamed to `nomscan`** — every layer now uses the one name:
 
-| What was renamed | What stayed |
-|---|---|
-| `<title>` and meta description | npm package name (`"pfscan"` in `package.json`) |
-| TopNav brand, aria-label | Folder name (`proofscan/`) |
-| Hero h1, footer brand | Worker name in `wrangler.jsonc` (`pfscan-local` / `pfscan`) |
-| NotFound + ErrorState user-facing copy | Type names (`PFScanResponse`, `PFScanError`, `PFScanErrorCode`, `PFScanPagination`, `PFScanFetchError`, `PFScanResult`) |
-| README + CLAUDE.md prose | Function names (`pfscanFetch`) |
-|  | Log prefixes (`[pfscan]`) |
-|  | Internal cache key (`pfscan.internal/_last-known-prices`) |
-|  | Env var name (`PFSCAN_ENV`) |
-|  | Spec file name (`PFSCAN_SPEC.md`) |
-|  | Peer-review docs (historical artifacts) |
+- Display: `<title>`, TopNav brand, hero, footer, user-facing copy → "NoM Scan"
+- npm package name: `nomscan` (`package.json`)
+- Worker name in `wrangler.jsonc`: `nomscan-local` (local) / `nomscan` (production)
+- Code identifiers: `nomscanFetch`, `NomScanResponse`, `NomScanError`, `NomScanErrorCode`, `NomScanPagination`, `NomScanFetchError`, `NomScanResult`
+- Log prefixes `[nomscan]`, internal cache key `nomscan.internal/_last-known-prices`
+- Env var `NOMSCAN_ENV`, spec file `NOMSCAN_SPEC.md`
+- JWT `sub` claim default: `nomscan` (`NOM_INDEXER_JWT_SUBJECT`) — **the indexer must accept this subject** (rate-limiting is per subject)
 
-If you later want to rename internal identifiers too (e.g. to `nomscan`), it's mostly mechanical but touches the Worker name in `wrangler.jsonc` — if there's a production deploy by then, you'd need to migrate the Worker (or set up a new one + DNS swap). Don't rush it.
+The on-disk folder is still `proofscan/`; the GitHub repo is `nom-scan`.
 
 ---
 
@@ -185,8 +180,8 @@ If you later want to rename internal identifiers too (e.g. to `nomscan`), it's m
 There's no production deploy yet. When you're ready:
 
 1. Decide the **production `NOM_INDEXER_BASE_URL`** and update `wrangler.jsonc → env.production.vars.NOM_INDEXER_BASE_URL` (currently a placeholder).
-2. Set the **production signing secret** via `wrangler secret put NOM_INDEXER_JWT_SECRET --env production`. Optionally `NOM_INDEXER_JWT` if you have a pre-minted long-lived JWT. `NOM_INDEXER_JWT_SUBJECT` defaults to `"pfscan"` from the wrangler vars; override there if upstream expects a different `sub`.
-3. Add a `routes` block in `wrangler.jsonc env.production` for your DNS (currently commented out with `pfscan.com` example).
+2. Set the **production signing secret** via `wrangler secret put NOM_INDEXER_JWT_SECRET --env production`. Optionally `NOM_INDEXER_JWT` if you have a pre-minted long-lived JWT. `NOM_INDEXER_JWT_SUBJECT` defaults to `"nomscan"` from the wrangler vars; override there if upstream expects a different `sub`.
+3. Add a `routes` block in `wrangler.jsonc env.production` for your DNS (currently commented out with `nomscan.com` example).
 4. `npm run deploy:production`.
 5. Verify the JWT-leak grep on the built bundle:
    ```sh
@@ -207,16 +202,16 @@ There's no preview/staging environment configured yet — adding one is a Phase 
 
 ### Carried-forward debt
 - **Test coverage** (updated after the May 2026 audit). `vitest.workspace.ts` now defines a jsdom `unit` project and a node `worker` project (the latter with a minimal Cache API polyfill in `tests/worker/setup.ts`); `npm run test:worker` resolves. 77 tests cover the shared formatters/validators, the Worker envelope/error/jwt/clamp/cache/upstream helpers, and the search + address routes (mocked upstream). Still no Playwright e2e specs (`playwright.config.ts` not yet created — `npm run test:e2e` will fail until it is). Worker-route tests use a lightweight `caches` polyfill, not the full `@cloudflare/vitest-pool-workers` pool.
-- **API codegen not committed.** `npm run codegen:api` exists but `src/shared/api/nom-indexer.d.ts` is simply **not committed** (it is *not* gitignored — it was never generated). Hand-written types in `src/shared/api/pfscan.ts` cover the Worker, the only consumer of upstream shapes. Run the codegen if you want strict upstream typing.
+- **API codegen not committed.** `npm run codegen:api` exists but `src/shared/api/nom-indexer.d.ts` is simply **not committed** (it is *not* gitignored — it was never generated). Hand-written types in `src/shared/api/nomscan.ts` cover the Worker, the only consumer of upstream shapes. Run the codegen if you want strict upstream typing.
 - **No openapi-fetch.** Worker uses a hand-rolled `nomIndexerFetch` helper. Fine for ~10 endpoints; revisit if it grows.
 - **Theme is dark-only.** CSS variables are set up for light mode but no light tokens exist yet. The `data-theme="dark"` on `<html>` would just need a sibling `[data-theme="light"]` rule block plus a theme toggle.
 
 ### Cursor pagination (Tier 3 perf, deferred)
 Offset pagination on the indexer's `/transactions` endpoint is fast enough now that `pagination.total` is O(1), but it's still O(N) at the offset for very deep pages. If anyone reports slowness paginating to page 4000 of 4187 on a busy address, the fix is cursor-based pagination on the indexer (`?before_momentum_height=…&limit=50`). Bigger indexer change, no immediate need.
 
-### Open spec questions (unanswered from `PFSCAN_SPEC.md`)
+### Open spec questions (unanswered from `NOMSCAN_SPEC.md`)
 1. Production `nom-indexer-go` base URL — placeholder in `wrangler.jsonc`.
-2. Whether to support both `pfscan.com` and `www.pfscan.com` — moot now that the brand is "NoM Scan"; will likely become a question about `nomscan.io` or similar.
+2. Whether to support both `nomscan.com` and `www.nomscan.com` — moot now that the brand is "NoM Scan"; will likely become a question about `nomscan.io` or similar.
 3. Magic-link email delivery provider for Phase 3 (Cloudflare Email Workers vs Resend vs Postmark).
 4. Whether `/tx/:hash` should stitch send+receive paired blocks into one view (currently shows the exact account-block with a link to the paired hash — the simpler choice).
 5. Light mode in MVP vs deferred.
@@ -228,15 +223,15 @@ Offset pagination on the indexer's `/transactions` endpoint is fast enough now t
 
 ### "Add a new field to the address summary"
 1. Add the field to the upstream `/api/v1/accounts/{address}` response if it isn't there. Coordinate with the indexer team.
-2. Add it to the `AddressSummary` interface in `src/shared/api/pfscan.ts`.
+2. Add it to the `AddressSummary` interface in `src/shared/api/nomscan.ts`.
 3. Read it in `src/app/components/address/AddressSummary.tsx`. Use the same pattern as `block_count`/`tx_count` — narrow with `typeof data?.field === "number" ? data.field : undefined`.
 4. Render a new `<Card label="…">` in the grid.
 
 ### "Add a new `/api/*` endpoint"
 1. Write the handler in `src/worker/routes/foo.ts`. Follow the pattern: return `ok(data, pagination?)` on success, `errorFromThrown(e)` in the catch.
 2. Register the route in `src/worker/index.ts` (`api.get("/api/foo/:bar", getFoo)`).
-3. Add a hook in `src/app/api/queries.ts` calling `pfscanFetch<T>("/api/foo/...")` with a stable `queryKey` and an appropriate `staleTime`.
-4. If you need response types, declare them in `src/shared/api/pfscan.ts` so both Worker and React consume the same shape.
+3. Add a hook in `src/app/api/queries.ts` calling `nomscanFetch<T>("/api/foo/...")` with a stable `queryKey` and an appropriate `staleTime`.
+4. If you need response types, declare them in `src/shared/api/nomscan.ts` so both Worker and React consume the same shape.
 5. If the endpoint benefits from edge caching, wrap the handler body in `withCache(request, ttlSeconds, async () => { … })`.
 
 ### "Add a new page / route"
@@ -254,9 +249,9 @@ The Worker maps upstream 429 in `src/worker/errors.ts → mapUpstreamStatus`. `R
 
 ## 11. Where to look next
 
-- **The product spec** ([`PFSCAN_SPEC.md`](./PFSCAN_SPEC.md)) is still the authoritative source for product intent. It was written before the rebrand — the name "PFScan" appears throughout but the product semantics are unchanged.
+- **The product spec** ([`NOMSCAN_SPEC.md`](./NOMSCAN_SPEC.md)) is still the authoritative source for product intent. It predates the rename, so its prose reads "NomScan" rather than the canonical "NoM Scan" display form, but the product semantics are unchanged.
 - **The peer-review snapshot** ([`PEER_REVIEW.md`](./PEER_REVIEW.md)) is a useful artifact for understanding what was considered "shipped" at that point. Open question #1 in that doc (JWT `scope: "read"` claim) is still unresolved.
 - **`CLAUDE.md`** is a terse architectural cheat sheet kept up to date for future Claude Code sessions. Less narrative than this doc, more reference.
-- **Worker logs** at runtime: `console.error("[pfscan] …")` lines appear in `wrangler dev` / `wrangler tail`. Useful for upstream error debugging.
+- **Worker logs** at runtime: `console.error("[nomscan] …")` lines appear in `wrangler dev` / `wrangler tail`. Useful for upstream error debugging.
 
 If a future iteration takes more than a couple of weeks: come back here first, then read the last 10 commits on `main`, then dive in.

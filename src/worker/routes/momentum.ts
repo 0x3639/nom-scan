@@ -2,7 +2,7 @@ import type { RouteHandler } from "../router";
 import { nomIndexerFetch } from "../upstream";
 import { ok, err, errorFromThrown } from "../respond";
 import { isMomentumHeight, normalizeMomentum } from "@shared/validate/identifier";
-import type { MomentumDetail } from "@shared/api/pfscan";
+import type { MomentumDetail } from "@shared/api/nomscan";
 
 export const getMomentum: RouteHandler = async (_request, env, _ctx, params) => {
   const heightStr = params["height"] ?? "";

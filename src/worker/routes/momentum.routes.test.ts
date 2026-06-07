@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Env } from "../env";
-import type { MomentumDetail } from "@shared/api/pfscan";
+import type { MomentumDetail } from "@shared/api/nomscan";
 
 vi.mock("../upstream", () => ({ nomIndexerFetch: vi.fn() }));
 import { nomIndexerFetch } from "../upstream";

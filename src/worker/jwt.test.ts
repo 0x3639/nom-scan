@@ -31,22 +31,22 @@ describe("getNomIndexerJwt", () => {
     const { getNomIndexerJwt } = await import("./jwt");
     const secret = "super-secret-signing-value-do-not-leak";
     const token = await getNomIndexerJwt(
-      envWith({ NOM_INDEXER_JWT_SECRET: secret, NOM_INDEXER_JWT_SUBJECT: "pfscan" }),
+      envWith({ NOM_INDEXER_JWT_SECRET: secret, NOM_INDEXER_JWT_SUBJECT: "nomscan" }),
     );
     const parts = token.split(".");
     expect(parts).toHaveLength(3);
     expect(decodeSegment(parts[0]!)).toEqual({ alg: "HS256", typ: "JWT" });
     const payload = decodeSegment(parts[1]!) as { sub: string; iat: number; exp: number };
-    expect(payload.sub).toBe("pfscan");
+    expect(payload.sub).toBe("nomscan");
     expect(payload.exp - payload.iat).toBe(300);
     // Security-critical: the HMAC signature is derived from, but never reveals, the secret.
     expect(token).not.toContain(secret);
   });
 
-  it("defaults the subject to 'pfscan'", async () => {
+  it("defaults the subject to 'nomscan'", async () => {
     const { getNomIndexerJwt } = await import("./jwt");
     const token = await getNomIndexerJwt(envWith({ NOM_INDEXER_JWT_SECRET: "another-secret-value-here" }));
     const payload = decodeSegment(token.split(".")[1]!) as { sub: string };
-    expect(payload.sub).toBe("pfscan");
+    expect(payload.sub).toBe("nomscan");
   });
 });

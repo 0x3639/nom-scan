@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import type { TxDetail } from "@shared/api/pfscan";
-import { txTimestamp } from "@shared/api/pfscan";
+import type { TxDetail } from "@shared/api/nomscan";
+import { txTimestamp } from "@shared/api/nomscan";
 import { formatAmount } from "@shared/format/amount";
 import { formatTimestamp } from "@shared/format/time";
 import styles from "./TxDetailsTable.module.css";

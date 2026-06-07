@@ -51,7 +51,7 @@ function withSecurityHeaders(response: Response, env: Env): Response {
   // injects an inline <script> preamble that strict CSP would block — without
   // the preamble, react-refresh throws "can't detect preamble" and React
   // never mounts. Local risk is nil (it's the developer's own machine).
-  if (env.PFSCAN_ENV === "production") {
+  if (env.NOMSCAN_ENV === "production") {
     headers.set("Content-Security-Policy", PROD_CSP);
   }
   return new Response(response.body, {
@@ -71,7 +71,7 @@ export default {
         if (matched) return matched;
         return err("not_found", "API route not found.", 404);
       } catch (e) {
-        console.error("[pfscan] unhandled router error:", e);
+        console.error("[nomscan] unhandled router error:", e);
         return err("internal", "Something went wrong.", 500);
       }
     }

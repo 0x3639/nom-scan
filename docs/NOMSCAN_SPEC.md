@@ -1,8 +1,8 @@
-# PFScan Product Spec
+# NomScan Product Spec
 
-PFScan is a Zenon Network explorer inspired by Blockscan's simple search, address, portfolio, and transaction workflows. The product name means Proof Scan and the public domain should be `pfscan.com`.
+NomScan is a Zenon Network explorer inspired by Blockscan's simple search, address, portfolio, and transaction workflows. The product name means Proof Scan and the public domain should be `nomscan.com`.
 
-The goal is a Zenon-native Blockscan experience: same core information architecture and dense explorer ergonomics, but with PFScan branding, Zenon data, and a visual language aligned with Zenon Tools.
+The goal is a Zenon-native Blockscan experience: same core information architecture and dense explorer ergonomics, but with NomScan branding, Zenon data, and a visual language aligned with Zenon Tools.
 
 ## References
 
@@ -70,17 +70,17 @@ Future routes can add `/token/:tokenStandard`, `/momentum/:height`, `/pillars`, 
 
 Use a compact explorer shell on every page:
 
-- Top nav with PFScan logo, `Explorer`, optional `Tools`, search input, theme toggle, and login/account button.
+- Top nav with NomScan logo, `Explorer`, optional `Tools`, search input, theme toggle, and login/account button.
 - Search input should remain available globally, not just on the home page.
 - Show current momentum height when available from `/api/v1/status` or `/api/v1/momentums/latest`.
-- Footer should stay minimal: PFScan, Zenon Network links, GitHub/community links, terms/privacy once needed.
+- Footer should stay minimal: NomScan, Zenon Network links, GitHub/community links, terms/privacy once needed.
 
 ### Home Page
 
 Blockscan-inspired structure:
 
 - Centered brand/title area.
-- Main headline: `PFScan`
+- Main headline: `NomScan`
 - Supporting line: `Zenon Explorer | Portfolio | Transactions`
 - Large search bar with placeholder `Search by Address or Hash`.
 - Small command hint for `/` keyboard focus.
@@ -94,7 +94,7 @@ On submit:
 1. Trim whitespace and normalize casing only where safe.
 2. If the query looks like a Zenon address, route to `/address/:address#portfolios`.
 3. If the query looks like an account-block hash, route to `/tx/:hash`.
-4. If the type is ambiguous, call the PFScan Worker search endpoint, which should try:
+4. If the type is ambiguous, call the NomScan Worker search endpoint, which should try:
    - `GET /api/v1/accounts/{query}`
    - `GET /api/v1/account_blocks/{query}`
 5. If neither resolves, show a compact not-found state with the original query and suggestions.
@@ -307,11 +307,11 @@ User portfolio enhancements:
 - `GET /api/v1/accounts/{address}/bridge/wraps`
 - `GET /api/v1/accounts/{address}/bridge/unwraps`
 
-### PFScan Worker API
+### NomScan Worker API
 
 The React app must not call nom-indexer-go directly with the protected JWT. Use a Cloudflare Worker/Pages Function as a thin API layer.
 
-Suggested PFScan API:
+Suggested NomScan API:
 
 - `GET /api/status`
 - `GET /api/search?q=...`
@@ -359,7 +359,7 @@ Recommended Cloudflare setup:
 
 - Cloudflare D1 for users, sessions, saved addresses, groups, labels, and alert definitions.
 - Cloudflare KV or Cache API for token metadata and short-lived API response cache.
-- Optional Durable Object later for live stream coordination if PFScan consumes nom-indexer-go WebSockets.
+- Optional Durable Object later for live stream coordination if NomScan consumes nom-indexer-go WebSockets.
 
 ### Suggested D1 Tables
 
@@ -467,7 +467,7 @@ Zenon Tools cues from `https://tools.zenon.info/`:
 
 ### Theme Tokens
 
-Use CSS variables so the theme can evolve. PFScan should default to a dark theme matching `tools.zenon.info`; a light theme can be added later as an accessibility/user preference option.
+Use CSS variables so the theme can evolve. NomScan should default to a dark theme matching `tools.zenon.info`; a light theme can be added later as an accessibility/user preference option.
 
 Default dark theme:
 
@@ -554,7 +554,7 @@ Handle:
 - Address not found.
 - Transaction hash not found.
 - Upstream 401: show "Explorer API authentication is misconfigured" to admins/logs; generic failure to users.
-- Upstream 429: "PFScan is receiving too many requests. Please retry shortly."
+- Upstream 429: "NomScan is receiving too many requests. Please retry shortly."
 - Upstream 503/readiness failure: "Indexer is syncing or temporarily unavailable."
 - Empty balances.
 - Empty transaction history.
@@ -563,7 +563,7 @@ Handle:
 ## Security
 
 - Never expose the nom-indexer-go JWT in browser code.
-- Use strict CORS on PFScan API routes.
+- Use strict CORS on NomScan API routes.
 - Escape all chain data before rendering.
 - Do not render decoded `data` or `input` as HTML.
 - Add CSP headers.
@@ -676,9 +676,9 @@ MVP is done when:
 
 ## Open Questions
 
-1. What production nom-indexer-go base URL should PFScan call?
-2. Should PFScan support both `pfscan.com` and `www.pfscan.com`?
+1. What production nom-indexer-go base URL should NomScan call?
+2. Should NomScan support both `nomscan.com` and `www.nomscan.com`?
 3. Which login method is preferred for MVP: email magic links, passkeys, or third-party OAuth?
-4. Should PFScan include a light mode in MVP, or ship dark-only first to match `tools.zenon.info`?
+4. Should NomScan include a light mode in MVP, or ship dark-only first to match `tools.zenon.info`?
 5. Should transaction pages stitch paired send/receive account-blocks into one "complete transaction" view, or show the exact account-block first and paired block as a linked detail?
 6. Is there an approved Zenon token price source for fiat portfolio values?
