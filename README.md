@@ -32,22 +32,53 @@ with that secret, under the `nomscan` subject). See `.dev.vars.example`.
 
 ## Deploying to Cloudflare
 
-First-time setup:
+### Automatic deploys (Cloudflare Workers Builds)
+
+Deploys are driven by **Cloudflare Workers Builds** (the Git integration set up in
+the Cloudflare dashboard), not GitHub Actions. Cloudflare watches the connected repo
+and builds/deploys on push to the production branch. No GitHub-side secrets or API
+token are needed.
+
+Required dashboard configuration (Worker → Settings → Build):
+
+- **Git repository:** `0x3639/nom-scan`, production branch `main` (reconnect if it
+  shows "disconnected").
+- **Build command:** `npm run build`
+- **Build variable** `CLOUDFLARE_ENV=production` — **critical.** The Worker uses a
+  Wrangler environment (`env.production`) selected at build time by
+  `@cloudflare/vite-plugin`. Without this, the build targets the top-level/local
+  default and ships a Worker with no `NOM_INDEXER_BASE_URL` and the wrong name.
+- **Deploy command:** `npx wrangler deploy` (no `--env` — the env is baked in at build).
+
+`NOM_INDEXER_JWT_SECRET` is stored on the Worker itself (set once via
+`wrangler secret put`), so the build never handles it and it is preserved across
+deploys. The other production vars (`NOM_INDEXER_BASE_URL`, `NOM_INDEXER_JWT_SUBJECT`,
+`NOMSCAN_ENV`) come from `wrangler.jsonc → env.production.vars` and overwrite any
+dashboard-set plaintext vars on each deploy.
+
+### Manual / first-time setup
 
 1. **Authenticate:** `npx wrangler login` (interactive browser auth).
-2. **Set the production signing secret** (the HMAC secret the production indexer validates JWTs against):
+2. **Set the production signing secret** (the HMAC secret the production indexer validates JWTs against), on the production Worker:
    ```sh
    npx wrangler secret put NOM_INDEXER_JWT_SECRET --env production
    ```
-3. **Deploy:** `npm run deploy:production` (builds, runs the secret-leak asset guard, then `wrangler deploy --env production`).
+3. **Deploy:** `npm run deploy:production` — builds for the production env
+   (`CLOUDFLARE_ENV=production vite build`), runs the secret-leak asset guard, then
+   `wrangler deploy`. (The env is selected at build time by `@cloudflare/vite-plugin`,
+   not via `wrangler deploy --env`.)
 
-This deploys the Worker named `nomscan` to your `*.workers.dev` subdomain (no custom
+This deploys the Worker named `nom-scan` to your `*.workers.dev` subdomain (no custom
 domain configured yet). The production indexer URL (`https://indexerapi.zenon.info`)
 and the JWT subject (`nomscan`) live in `wrangler.jsonc → env.production.vars`.
 
 > **Indexer prerequisite:** the production indexer must accept JWTs with the
 > `nomscan` subject (it rate-limits 60 req/min per subject). Coordinate the
 > signing secret + accepted subject with the indexer operator before deploying.
+>
+> **Worker name:** the signing secret must be set on the same Worker that gets
+> deployed (`nom-scan`). If you set it earlier under a different name, re-run
+> `wrangler secret put` so it lands on `nom-scan`.
 
 To add a custom domain later, add a `routes` block under `env.production` in
 `wrangler.jsonc` and point DNS at Cloudflare.
