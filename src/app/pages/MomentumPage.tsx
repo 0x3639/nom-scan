@@ -7,6 +7,7 @@ import { MomentumBadge } from "../components/MomentumBadge";
 import { SkeletonRows } from "../components/state/Skeleton";
 import { ErrorState } from "../components/state/ErrorState";
 import { NotFoundState } from "../components/state/NotFoundState";
+import { isNotFoundError } from "../api/client";
 import { isMomentumHeight, normalizeMomentum } from "@shared/validate/identifier";
 
 export function MomentumPage() {
@@ -48,8 +49,10 @@ export function MomentumPage() {
     );
   }
 
-  if (q.isError) return <ErrorState error={q.error} retry={() => void q.refetch()} />;
-  if (!q.data) {
+  if (q.isError && !isNotFoundError(q.error)) {
+    return <ErrorState error={q.error} retry={() => void q.refetch()} />;
+  }
+  if (q.isError || !q.data) {
     return (
       <div>
         {crumb}
