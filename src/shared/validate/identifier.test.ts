@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { detectQueryType, normalizeHash } from "./identifier";
+import { isMomentumHeight, normalizeMomentum } from "./identifier";
 
 describe("identifier detection", () => {
   it("detects Zenon-looking addresses", () => {
@@ -15,5 +16,33 @@ describe("identifier detection", () => {
   it("rejects empty and malformed input", () => {
     expect(detectQueryType("")).toBe("invalid");
     expect(detectQueryType("hello")).toBe("invalid");
+  });
+});
+
+describe("momentum height detection", () => {
+  it("classifies a bare positive integer as momentum", () => {
+    expect(detectQueryType("13444825")).toBe("momentum");
+    expect(detectQueryType("  42 ")).toBe("momentum");
+  });
+
+  it("does not treat 0, negatives, or non-digits as momentum", () => {
+    expect(detectQueryType("0")).toBe("invalid");
+    expect(detectQueryType("-5")).toBe("invalid");
+    expect(detectQueryType("1.5")).toBe("invalid");
+    expect(detectQueryType("12x")).toBe("invalid");
+  });
+
+  it("does not misclassify addresses or 64-hex hashes as momentum", () => {
+    expect(detectQueryType("z1qxemdeddedxplasmaxxxxxxxxxxxxxxxxsctrp")).toBe("address");
+    expect(detectQueryType("a".repeat(64))).toBe("hash");
+  });
+
+  it("rejects absurdly long digit strings (>18 digits)", () => {
+    expect(isMomentumHeight("1".repeat(19))).toBe(false);
+    expect(isMomentumHeight("1".repeat(18))).toBe(true);
+  });
+
+  it("normalizeMomentum trims to the canonical digit string", () => {
+    expect(normalizeMomentum("  77 ")).toBe("77");
   });
 });
