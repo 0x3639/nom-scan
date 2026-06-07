@@ -1,7 +1,7 @@
 import type { Env } from "../env";
 import { nomIndexerFetch } from "../upstream";
 import { UpstreamError } from "../errors";
-import type { TokenMeta } from "@shared/api/pfscan";
+import type { TokenMeta } from "@shared/api/nomscan";
 
 /**
  * Fetch token metadata. Per-isolate in-memory cache so balance/tx enrichment

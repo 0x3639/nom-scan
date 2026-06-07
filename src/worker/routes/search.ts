@@ -3,7 +3,7 @@ import { nomIndexerFetch } from "../upstream";
 import { ok, err, errorFromThrown } from "../respond";
 import { UpstreamError } from "../errors";
 import { detectQueryType, normalizeAddress, normalizeHash, normalizeMomentum } from "@shared/validate/identifier";
-import type { SearchResult } from "@shared/api/pfscan";
+import type { SearchResult } from "@shared/api/nomscan";
 
 async function existsAccount(env: import("../env").Env, address: string): Promise<boolean> {
   try {
@@ -70,7 +70,7 @@ export const getSearch: RouteHandler = async (request, env) => {
     if (e instanceof UpstreamError) {
       return errorFromThrown(e);
     }
-    console.error("[pfscan] search error:", e);
+    console.error("[nomscan] search error:", e);
     return err("internal", "Something went wrong.", 500);
   }
 };

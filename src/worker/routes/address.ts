@@ -4,11 +4,11 @@ import { withCache } from "../cache";
 import { ok, err, errorFromThrown } from "../respond";
 import { getToken } from "../services/tokens";
 import { isAddress } from "@shared/validate/identifier";
-import type { AddressSummary, BalanceEntry, PFScanPagination, TxRow } from "@shared/api/pfscan";
+import type { AddressSummary, BalanceEntry, NomScanPagination, TxRow } from "@shared/api/nomscan";
 
 interface UpstreamCollection<T> {
   data: T[];
-  pagination?: PFScanPagination;
+  pagination?: NomScanPagination;
 }
 
 const MAX_PAGE_SIZE = 200;
@@ -94,7 +94,7 @@ export const getAddressTransactions: RouteHandler = async (request, env, _ctx, p
         `/api/v1/accounts/${encodeURIComponent(address)}/transactions?page=${page}&page_size=${pageSize}&sort=${sort}`,
       );
       const entries: TxRow[] = Array.isArray(upstream) ? upstream : (upstream?.data ?? []);
-      const pagination: PFScanPagination =
+      const pagination: NomScanPagination =
         !Array.isArray(upstream) && upstream?.pagination
           ? upstream.pagination
           : { page, page_size: pageSize };

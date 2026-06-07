@@ -77,7 +77,7 @@ nom-indexer-go with a minted JWT. The frontend never calls the indexer directly.
 - `/api/search` (`src/worker/routes/search.ts`): when `detectQueryType` is
   `momentum`, check `/api/v1/momentums/{height}` existence and return
   `{ kind: "momentum", target: height }` or `{ kind: "not_found" }`.
-- Types (`src/shared/api/pfscan.ts`):
+- Types (`src/shared/api/nomscan.ts`):
   - Extend `SearchKind` with `"momentum"`.
   - Add `MomentumDetail` = the `Momentum` fields above + optional
     `previous_hash: string`. Amounts/large ints follow existing string/BigInt
@@ -89,7 +89,7 @@ nom-indexer-go with a minted JWT. The frontend never calls the indexer directly.
 - **Router** (`src/app/router.tsx`): add lazy route
   `{ path: "/momentum/:height", element: <MomentumPage /> }`.
 - **Query hook** (`src/app/api/queries.ts`): `useMomentum(height)` →
-  `pfscanFetch<MomentumDetail>("/api/momentum/:height")` with a stable
+  `nomscanFetch<MomentumDetail>("/api/momentum/:height")` with a stable
   `queryKey` and sensible `staleTime` (momentums are immutable once produced, so
   a long staleTime is fine).
 - **`SearchInput`** (`src/app/components/SearchInput.tsx`): route `momentum`

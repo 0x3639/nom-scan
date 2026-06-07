@@ -3,7 +3,7 @@ import { nomIndexerFetch } from "../upstream";
 import { ok, err, errorFromThrown } from "../respond";
 import { getToken } from "../services/tokens";
 import { isHash, normalizeHash } from "@shared/validate/identifier";
-import type { TxDetail } from "@shared/api/pfscan";
+import type { TxDetail } from "@shared/api/nomscan";
 
 export const getTransaction: RouteHandler = async (_request, env, _ctx, params) => {
   const hash = params["hash"] ?? "";

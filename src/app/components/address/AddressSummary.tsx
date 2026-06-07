@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { BalanceEntry } from "@shared/api/pfscan";
+import type { BalanceEntry } from "@shared/api/nomscan";
 import { useAddressBalances, useAddressSummary } from "../../api/queries";
 import { formatAmount } from "@shared/format/amount";
 import { formatDate } from "@shared/format/time";

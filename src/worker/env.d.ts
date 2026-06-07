@@ -11,7 +11,7 @@ export interface Env {
   /** Pre-minted long-lived JWT. Use only when minting is not possible. */
   NOM_INDEXER_JWT?: string;
 
-  /** Subject claim placed in minted JWTs. Defaults to "pfscan". */
+  /** Subject claim placed in minted JWTs. Defaults to "nomscan". */
   NOM_INDEXER_JWT_SUBJECT?: string;
 
   /** Cloudflare static-assets binding (declared in wrangler.jsonc). */
@@ -22,5 +22,5 @@ export interface Env {
    * inline scripts. "local" relaxes CSP so Vite's React Fast Refresh preamble
    * (an inline script) can run during dev.
    */
-  PFSCAN_ENV?: "local" | "production";
+  NOMSCAN_ENV?: "local" | "production";
 }

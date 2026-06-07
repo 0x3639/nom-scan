@@ -1,6 +1,6 @@
 import type { RouteHandler } from "../router";
 import { err } from "../respond";
-import type { PriceMap } from "@shared/api/pfscan";
+import type { PriceMap } from "@shared/api/nomscan";
 
 const UPSTREAM = "https://api.zenon.info/price";
 /** How long the served response is treated as fresh by the edge + the browser. */
@@ -8,7 +8,7 @@ const FRESH_TTL_SECONDS = 60;
 /** How long we hold onto last-known-good prices to fill upstream gaps. */
 const LAST_KNOWN_TTL_SECONDS = 5 * 60;
 /** Cache-API key for the last-known-good merged price map (constant; not a real URL). */
-const LAST_KNOWN_KEY = "https://pfscan.internal/_last-known-prices";
+const LAST_KNOWN_KEY = "https://nomscan.internal/_last-known-prices";
 
 interface UpstreamShape {
   data?: Record<string, { usd?: number; timestamp?: string }>;
@@ -18,7 +18,7 @@ async function fetchUpstreamPrices(): Promise<PriceMap | null> {
   try {
     const res = await fetch(UPSTREAM, { headers: { Accept: "application/json" } });
     if (!res.ok) {
-      console.error(`[pfscan] price upstream ${res.status}`);
+      console.error(`[nomscan] price upstream ${res.status}`);
       return null;
     }
     const body = (await res.json()) as UpstreamShape;
@@ -30,7 +30,7 @@ async function fetchUpstreamPrices(): Promise<PriceMap | null> {
     }
     return Object.keys(out).length > 0 ? out : null;
   } catch (e) {
-    console.error("[pfscan] price fetch error:", e);
+    console.error("[nomscan] price fetch error:", e);
     return null;
   }
 }

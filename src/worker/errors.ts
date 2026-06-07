@@ -1,4 +1,4 @@
-import type { PFScanErrorCode } from "@shared/api/pfscan";
+import type { NomScanErrorCode } from "@shared/api/nomscan";
 
 export class UpstreamError extends Error {
   constructor(
@@ -12,7 +12,7 @@ export class UpstreamError extends Error {
   }
 }
 
-export function mapUpstreamStatus(status: number): { code: PFScanErrorCode; userMessage: string } {
+export function mapUpstreamStatus(status: number): { code: NomScanErrorCode; userMessage: string } {
   if (status === 401 || status === 403) {
     return {
       code: "upstream_auth",

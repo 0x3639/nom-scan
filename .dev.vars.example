@@ -9,8 +9,8 @@ NOM_INDEXER_BASE_URL=http://localhost:8080
 # The Worker mints a short-lived JWT per request (cached briefly in memory).
 NOM_INDEXER_JWT_SECRET=
 
-# Optional: subject claim placed in the minted JWT. Defaults to "pfscan".
-# NOM_INDEXER_JWT_SUBJECT=pfscan
+# Optional: subject claim placed in the minted JWT. Defaults to "nomscan".
+# NOM_INDEXER_JWT_SUBJECT=nomscan
 
 # Alternative: if you already have a pre-minted long-lived JWT, set this instead of
 # NOM_INDEXER_JWT_SECRET and the Worker will use it verbatim. If both are set,

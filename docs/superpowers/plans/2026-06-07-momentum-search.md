@@ -23,7 +23,7 @@
 **Modify:**
 - `src/shared/validate/identifier.ts` — add `momentum` query type + helpers
 - `src/shared/validate/identifier.test.ts` — momentum detection tests
-- `src/shared/api/pfscan.ts` — extend `SearchKind`, add `MomentumDetail`
+- `src/shared/api/nomscan.ts` — extend `SearchKind`, add `MomentumDetail`
 - `src/worker/index.ts` — register the momentum route
 - `src/worker/routes/search.ts` — momentum dispatch in `/api/search`
 - `src/worker/routes/search.test.ts` — momentum search tests
@@ -155,13 +155,13 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ## Task 2: Shared types — SearchKind + MomentumDetail
 
 **Files:**
-- Modify: `src/shared/api/pfscan.ts`
+- Modify: `src/shared/api/nomscan.ts`
 
 No dedicated test (types only); verified by `npm run typecheck` in later tasks.
 
 - [ ] **Step 1: Extend `SearchKind`**
 
-In `src/shared/api/pfscan.ts`, change the Search section:
+In `src/shared/api/nomscan.ts`, change the Search section:
 
 ```ts
 // ── Search ───────────────────────────────────────────────────────────────────
@@ -209,7 +209,7 @@ Expected: PASS (no usages yet; just confirms the file compiles).
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/shared/api/pfscan.ts
+git add src/shared/api/nomscan.ts
 git commit -m "feat: add MomentumDetail type and momentum SearchKind
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
@@ -231,7 +231,7 @@ Create `src/worker/routes/momentum.routes.test.ts`:
 ```ts
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Env } from "../env";
-import type { MomentumDetail } from "@shared/api/pfscan";
+import type { MomentumDetail } from "@shared/api/nomscan";
 
 vi.mock("../upstream", () => ({ nomIndexerFetch: vi.fn() }));
 import { nomIndexerFetch } from "../upstream";
@@ -316,7 +316,7 @@ Create `src/worker/routes/momentum.ts`:
 import type { RouteHandler } from "../router";
 import { nomIndexerFetch } from "../upstream";
 import { ok, err, errorFromThrown } from "../respond";
-import type { MomentumDetail } from "@shared/api/pfscan";
+import type { MomentumDetail } from "@shared/api/nomscan";
 
 // Positive integer, no leading zero, capped length. Mirrors MOMENTUM_RE in
 // the shared identifier validator.
@@ -485,7 +485,7 @@ import type {
   TokenMeta,
   TxDetail,
   TxRow,
-} from "@shared/api/pfscan";
+} from "@shared/api/nomscan";
 ```
 
 Add a `momentum` entry to the `STALE` object (momentums are immutable once produced, so cache them long):
@@ -510,7 +510,7 @@ export function useMomentum(height: string) {
   return useQuery({
     queryKey: ["momentum", height],
     queryFn: () =>
-      pfscanFetch<MomentumDetail>(`/api/momentum/${encodeURIComponent(height)}`).then((r) => r.data),
+      nomscanFetch<MomentumDetail>(`/api/momentum/${encodeURIComponent(height)}`).then((r) => r.data),
     staleTime: STALE.momentum,
     enabled: Boolean(height),
   });
@@ -772,7 +772,7 @@ Create `src/app/components/momentum/MomentumDetailsTable.tsx` (reuses the transa
 
 ```tsx
 import { Link } from "react-router-dom";
-import type { MomentumDetail } from "@shared/api/pfscan";
+import type { MomentumDetail } from "@shared/api/nomscan";
 import { formatTimestamp } from "@shared/format/time";
 import styles from "../tx/TxDetailsTable.module.css";
 

@@ -1,5 +1,5 @@
-import type { PFScanErrorCode } from "@shared/api/pfscan";
-import { PFScanFetchError } from "../../api/client";
+import type { NomScanErrorCode } from "@shared/api/nomscan";
+import { NomScanFetchError } from "../../api/client";
 import styles from "./State.module.css";
 
 interface Props {
@@ -12,7 +12,7 @@ interface ErrorMessage {
   message: string;
 }
 
-function messageForCode(code: PFScanErrorCode, retryAfter?: number): ErrorMessage {
+function messageForCode(code: NomScanErrorCode, retryAfter?: number): ErrorMessage {
   switch (code) {
     case "not_found":
       return { title: "Not found", message: "That record doesn't exist in the indexer." };
@@ -37,9 +37,9 @@ function messageForCode(code: PFScanErrorCode, retryAfter?: number): ErrorMessag
 }
 
 export function ErrorState({ error, retry }: Props) {
-  let code: PFScanErrorCode = "internal";
+  let code: NomScanErrorCode = "internal";
   let retryAfter: number | undefined;
-  if (error instanceof PFScanFetchError) {
+  if (error instanceof NomScanFetchError) {
     code = error.error.code;
     retryAfter = error.error.retryAfter;
   }

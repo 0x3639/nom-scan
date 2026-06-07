@@ -1,4 +1,4 @@
-import type { PFScanErrorCode, PFScanPagination, PFScanResponse } from "@shared/api/pfscan";
+import type { NomScanErrorCode, NomScanPagination, NomScanResponse } from "@shared/api/nomscan";
 import { UpstreamError, mapUpstreamStatus } from "./errors";
 
 const JSON_HEADERS = {
@@ -10,8 +10,8 @@ const JSON_HEADERS = {
   "Referrer-Policy": "strict-origin-when-cross-origin",
 };
 
-export function ok<T>(data: T, pagination?: PFScanPagination, init?: ResponseInit): Response {
-  const body: PFScanResponse<T> = pagination
+export function ok<T>(data: T, pagination?: NomScanPagination, init?: ResponseInit): Response {
+  const body: NomScanResponse<T> = pagination
     ? { ok: true, data, pagination }
     : { ok: true, data };
   return new Response(JSON.stringify(body), {
@@ -21,12 +21,12 @@ export function ok<T>(data: T, pagination?: PFScanPagination, init?: ResponseIni
 }
 
 export function err(
-  code: PFScanErrorCode,
+  code: NomScanErrorCode,
   message: string,
   status: number,
   retryAfter?: number,
 ): Response {
-  const body: PFScanResponse<never> = {
+  const body: NomScanResponse<never> = {
     ok: false,
     error: {
       code,
@@ -43,15 +43,15 @@ export function err(
 }
 
 /**
- * Convert any thrown value from a route handler into a PFScanResponse error reply.
+ * Convert any thrown value from a route handler into a NomScanResponse error reply.
  * Logs the real error server-side and returns a user-safe message.
  */
 export function errorFromThrown(thrown: unknown): Response {
   if (thrown instanceof UpstreamError) {
     const { code, userMessage } = mapUpstreamStatus(thrown.status);
-    console.error(`[pfscan] upstream ${thrown.status}:`, thrown.message);
+    console.error(`[nomscan] upstream ${thrown.status}:`, thrown.message);
     return err(code, userMessage, thrown.status, thrown.retryAfterSeconds ?? undefined);
   }
-  console.error("[pfscan] internal error:", thrown);
+  console.error("[nomscan] internal error:", thrown);
   return err("internal", "Something went wrong.", 500);
 }
