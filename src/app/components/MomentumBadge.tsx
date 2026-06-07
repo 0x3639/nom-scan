@@ -12,7 +12,7 @@ export function MomentumBadge() {
   return (
     <span className={styles.badge} title="Latest momentum height">
       <span className={styles.label}>Momentum</span>
-      <span className={`${styles.value} mono`}>{String(height)}</span>
+      <span className={`${styles.value} mono`}>{height.toLocaleString()}</span>
     </span>
   );
 }
