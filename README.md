@@ -21,9 +21,36 @@ The Worker authenticates to upstream automatically — the browser never sees th
 | Env | Indexer URL | Secret source | Command |
 |---|---|---|---|
 | `local` | `http://localhost:8080` (overridable in `.dev.vars`) | `.dev.vars` (gitignored) | `npm run dev` |
-| `production` | configured in `wrangler.jsonc → env.production.vars` | `wrangler secret put NOM_INDEXER_JWT_SECRET --env production` | `npm run deploy:production` |
+| `production` | `https://indexerapi.zenon.info` (`wrangler.jsonc → env.production.vars`) | `wrangler secret put NOM_INDEXER_JWT_SECRET --env production` | `npm run deploy:production` |
 
 The Worker reads the same env var names regardless of environment — selection happens at deploy time, not in code.
+
+**Run local dev against the production indexer:** in `.dev.vars`, set
+`NOM_INDEXER_BASE_URL=https://indexerapi.zenon.info` and set `NOM_INDEXER_JWT_SECRET`
+to the **production** signing secret (the production indexer only accepts JWTs minted
+with that secret, under the `nomscan` subject). See `.dev.vars.example`.
+
+## Deploying to Cloudflare
+
+First-time setup:
+
+1. **Authenticate:** `npx wrangler login` (interactive browser auth).
+2. **Set the production signing secret** (the HMAC secret the production indexer validates JWTs against):
+   ```sh
+   npx wrangler secret put NOM_INDEXER_JWT_SECRET --env production
+   ```
+3. **Deploy:** `npm run deploy:production` (builds, runs the secret-leak asset guard, then `wrangler deploy --env production`).
+
+This deploys the Worker named `nomscan` to your `*.workers.dev` subdomain (no custom
+domain configured yet). The production indexer URL (`https://indexerapi.zenon.info`)
+and the JWT subject (`nomscan`) live in `wrangler.jsonc → env.production.vars`.
+
+> **Indexer prerequisite:** the production indexer must accept JWTs with the
+> `nomscan` subject (it rate-limits 60 req/min per subject). Coordinate the
+> signing secret + accepted subject with the indexer operator before deploying.
+
+To add a custom domain later, add a `routes` block under `env.production` in
+`wrangler.jsonc` and point DNS at Cloudflare.
 
 ## Scripts
 

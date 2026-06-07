@@ -26,17 +26,16 @@
   "env": {
     "production": {
       "name": "nomscan",
-      // Production-only non-secret vars. Real NOM_INDEXER_BASE_URL goes here when known
-      // (Spec Open Question #1). NOM_INDEXER_JWT_SECRET is set via:
+      // Production-only non-secret vars. NOM_INDEXER_JWT_SECRET is a secret, set via:
       //   wrangler secret put NOM_INDEXER_JWT_SECRET --env production
       "vars": {
-        "NOM_INDEXER_BASE_URL": "https://REPLACE-ME-PRODUCTION-INDEXER-URL",
+        "NOM_INDEXER_BASE_URL": "https://indexerapi.zenon.info",
         "NOM_INDEXER_JWT_SUBJECT": "nomscan",
         "NOMSCAN_ENV": "production"
-      },
-      "routes": [
-        // { "pattern": "nomscan.com/*", "zone_name": "nomscan.com" }
-      ]
+      }
+      // No "routes" yet — deploys to the workers.dev subdomain (nomscan.<subdomain>.workers.dev).
+      // To serve on a custom domain later, add e.g.:
+      //   "routes": [{ "pattern": "nomscan.example.com/*", "zone_name": "example.com" }]
     }
   }
 }

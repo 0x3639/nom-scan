@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "deploy:production": "vite build && npm run check:assets && wrangler deploy --env production",
+    "deploy:production": "CLOUDFLARE_ENV=production vite build && npm run check:assets && wrangler deploy",
     "check:assets": "node scripts/check-deploy-assets.mjs",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",

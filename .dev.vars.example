@@ -5,8 +5,19 @@
 # Local default assumes nom-indexer-go is running on http://localhost:8080.
 NOM_INDEXER_BASE_URL=http://localhost:8080
 
+# --- Toggle: point local dev at the PRODUCTION indexer ---------------------------
+# To test the local Vite+Worker dev server against the deployed indexer instead of
+# a local one, comment the line above and uncomment this:
+#   NOM_INDEXER_BASE_URL=https://indexerapi.zenon.info
+# IMPORTANT when doing this: the Worker mints JWTs locally, so the production
+# indexer will only accept them if NOM_INDEXER_JWT_SECRET below is set to the SAME
+# signing secret configured in production, and the subject (nomscan) is accepted.
+# --------------------------------------------------------------------------------
+
 # HMAC-SHA256 signing secret for minting JWTs that nom-indexer-go will accept.
 # The Worker mints a short-lived JWT per request (cached briefly in memory).
+# For local-against-local: the secret your local indexer expects.
+# For local-against-production (toggle above): the production signing secret.
 NOM_INDEXER_JWT_SECRET=
 
 # Optional: subject claim placed in the minted JWT. Defaults to "nomscan".
