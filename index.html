@@ -2,11 +2,31 @@
 <html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#151515" />
     <meta name="description" content="NoM Scan — a Zenon Network explorer for addresses, portfolios, and transactions." />
     <title>NoM Scan — Zenon Explorer</title>
+
+    <!-- Open Graph / Twitter social cards.
+         NOTE: og:image / twitter:image should be ABSOLUTE URLs for reliable
+         unfurling on Facebook, Slack, X, etc. These are relative for now;
+         switch to the full https://<domain>/... once the production domain is
+         finalized (see "Open Questions" in CLAUDE.md). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="NoM Scan" />
+    <meta property="og:title" content="NoM Scan — Zenon Explorer" />
+    <meta property="og:description" content="A Zenon Network explorer for addresses, portfolios, and transactions." />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="NoM Scan — Zenon Explorer" />
+    <meta name="twitter:description" content="A Zenon Network explorer for addresses, portfolios, and transactions." />
+    <meta name="twitter:image" content="/twitter-card.png" />
   </head>
   <body>
     <div id="root"></div>

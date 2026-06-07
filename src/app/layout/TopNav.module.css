@@ -11,6 +11,7 @@
   max-width: var(--content-max);
   margin: 0 auto;
   padding: 12px 20px;
+  min-height: 36px;
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
@@ -27,13 +28,20 @@
 
 .brand {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: 7px;
   font-weight: 700;
-  font-size: 18px;
+  font-size: 21px;
   letter-spacing: var(--tracking);
 }
 .brand:hover { color: var(--color-text); }
+
+.brandLogo {
+  height: 31px;
+  width: 31px;
+  display: block;
+  margin-right: 2px;
+}
 
 .brandMark {
   color: var(--color-success);
