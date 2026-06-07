@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import type { MomentumDetail } from "@shared/api/pfscan";
 import { formatTimestamp } from "@shared/format/time";
 import styles from "../tx/TxDetailsTable.module.css";
+import local from "./MomentumDetailsTable.module.css";
 
 interface Props {
   momentum: MomentumDetail;
@@ -49,7 +50,7 @@ export function MomentumDetailsTable({ momentum }: Props) {
             {producerLabel ? <span className={styles.muted}> ({producerLabel})</span> : null}
           </Row>
           <Row label="Previous Hash">
-            {momentum.previous_hash ? (
+            {momentum.previous_hash && momentum.height > 1 ? (
               <Link to={`/momentum/${momentum.height - 1}`} className={`mono ${styles.link}`}>
                 {momentum.previous_hash}
               </Link>
@@ -61,7 +62,7 @@ export function MomentumDetailsTable({ momentum }: Props) {
         </tbody>
       </table>
 
-      <h2 className={styles.rawHeading}>Raw data</h2>
+      <h2 className={local.rawHeading}>Raw data</h2>
       <pre className={styles.pre}>{rawJson(momentum)}</pre>
     </>
   );
