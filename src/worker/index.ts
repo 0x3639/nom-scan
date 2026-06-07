@@ -9,6 +9,7 @@ import {
   getAddressTransactions,
 } from "./routes/address";
 import { getTransaction } from "./routes/tx";
+import { getMomentum } from "./routes/momentum";
 import { getTokenMeta } from "./routes/tokens";
 import { getPrices } from "./routes/prices";
 
@@ -19,6 +20,7 @@ const api = new ApiRouter()
   .get("/api/address/:address/balances", getAddressBalances)
   .get("/api/address/:address/transactions", getAddressTransactions)
   .get("/api/tx/:hash", getTransaction)
+  .get("/api/momentum/:height", getMomentum)
   .get("/api/tokens/:standard", getTokenMeta)
   .get("/api/prices", getPrices);
 

@@ -25,6 +25,7 @@ export function Search() {
   const { kind, target } = search.data;
   if (kind === "address" && target) return <Navigate to={`/address/${target}#portfolios`} replace />;
   if (kind === "tx" && target) return <Navigate to={`/tx/${normalizeHash(target)}`} replace />;
+  if (kind === "momentum" && target) return <Navigate to={`/momentum/${target}`} replace />;
 
   return (
     <div style={{ color: "var(--color-muted)" }}>
@@ -32,7 +33,7 @@ export function Search() {
       <p>
         Nothing matches <span className="mono" style={{ color: "var(--color-text)" }}>{q}</span>.
       </p>
-      <p>Try a full Zenon address (starts with <code className="mono">z1</code>) or a 64-character account-block hash.</p>
+      <p>Try a full Zenon address (starts with <code className="mono">z1</code>), a 64-character account-block hash, or a momentum height.</p>
     </div>
   );
 }

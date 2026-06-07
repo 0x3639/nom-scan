@@ -4,6 +4,7 @@ import { pfscanFetch } from "./client";
 import type {
   AddressSummary,
   BalanceEntry,
+  MomentumDetail,
   PriceMap,
   SearchResult,
   TokenMeta,
@@ -23,6 +24,7 @@ const STALE = {
   tx: 60_000,
   token: 5 * 60_000,
   prices: 60_000,
+  momentum: 5 * 60_000,
 };
 
 export function useStatus() {
@@ -158,4 +160,28 @@ export function useToken(standard: string) {
     staleTime: STALE.token,
     enabled: Boolean(standard),
   });
+}
+
+export function useMomentum(height: string) {
+  return useQuery({
+    queryKey: ["momentum", height],
+    queryFn: () =>
+      pfscanFetch<MomentumDetail>(`/api/momentum/${encodeURIComponent(height)}`).then((r) => r.data),
+    staleTime: STALE.momentum,
+    enabled: Boolean(height),
+  });
+}
+
+/**
+ * Latest momentum height from the status endpoint (reused by MomentumBadge's
+ * source fields). Returns null until known — used to disable "next" at the tip.
+ */
+export function useLatestMomentumHeight(): number | null {
+  const status = useStatus();
+  const d =
+    status.data && typeof status.data === "object" ? (status.data as Record<string, unknown>) : null;
+  const h = d ? d["latest_height"] ?? d["momentum_height"] ?? d["height"] ?? null : null;
+  if (typeof h === "number") return h;
+  if (typeof h === "string" && /^\d+$/.test(h)) return Number(h);
+  return null;
 }

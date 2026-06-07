@@ -62,4 +62,18 @@ describe("getSearch dispatch", () => {
     expect(body.data).toEqual({ kind: "not_found" });
     expect(nomIndexerFetch).not.toHaveBeenCalled();
   });
+
+  it("resolves an existing momentum height", async () => {
+    vi.mocked(nomIndexerFetch).mockResolvedValue({});
+    const res = await getSearch(req("13444825"), env, ctx, {});
+    const body = (await res.json()) as { data: unknown };
+    expect(body.data).toEqual({ kind: "momentum", target: "13444825" });
+  });
+
+  it("returns not_found when the momentum height 404s upstream", async () => {
+    vi.mocked(nomIndexerFetch).mockRejectedValue(new UpstreamError(404, "nf", null, null));
+    const res = await getSearch(req("999999999"), env, ctx, {});
+    const body = (await res.json()) as { data: unknown };
+    expect(body.data).toEqual({ kind: "not_found" });
+  });
 });

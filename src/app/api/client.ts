@@ -13,6 +13,15 @@ export interface PFScanResult<T> {
 }
 
 /**
+ * True when a thrown query error is a Worker `not_found` (404). Detail pages use
+ * this to render their dedicated NotFoundState instead of the generic ErrorState,
+ * since pfscanFetch throws on `{ ok: false }` and a 404 otherwise lands in isError.
+ */
+export function isNotFoundError(error: unknown): boolean {
+  return error instanceof PFScanFetchError && error.error.code === "not_found";
+}
+
+/**
  * Fetch a `/api/*` endpoint and unwrap the PFScan envelope. Throws
  * PFScanFetchError on `{ ok: false }`.
  */

@@ -7,6 +7,7 @@ import { MomentumBadge } from "../components/MomentumBadge";
 import { SkeletonRows } from "../components/state/Skeleton";
 import { ErrorState } from "../components/state/ErrorState";
 import { NotFoundState } from "../components/state/NotFoundState";
+import { isNotFoundError } from "../api/client";
 import { isHash, normalizeHash } from "@shared/validate/identifier";
 import { truncateMiddle } from "@shared/format/address";
 
@@ -47,8 +48,10 @@ export function TxPage() {
     );
   }
 
-  if (q.isError) return <ErrorState error={q.error} retry={() => void q.refetch()} />;
-  if (!q.data) {
+  if (q.isError && !isNotFoundError(q.error)) {
+    return <ErrorState error={q.error} retry={() => void q.refetch()} />;
+  }
+  if (q.isError || !q.data) {
     return (
       <div>
         {crumb}

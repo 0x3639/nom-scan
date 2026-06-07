@@ -2,7 +2,7 @@ import type { RouteHandler } from "../router";
 import { nomIndexerFetch } from "../upstream";
 import { ok, err, errorFromThrown } from "../respond";
 import { UpstreamError } from "../errors";
-import { detectQueryType, normalizeAddress, normalizeHash } from "@shared/validate/identifier";
+import { detectQueryType, normalizeAddress, normalizeHash, normalizeMomentum } from "@shared/validate/identifier";
 import type { SearchResult } from "@shared/api/pfscan";
 
 async function existsAccount(env: import("../env").Env, address: string): Promise<boolean> {
@@ -25,6 +25,16 @@ async function existsAccountBlock(env: import("../env").Env, hash: string): Prom
   }
 }
 
+async function existsMomentum(env: import("../env").Env, height: string): Promise<boolean> {
+  try {
+    await nomIndexerFetch(env, `/api/v1/momentums/${encodeURIComponent(height)}`);
+    return true;
+  } catch (e) {
+    if (e instanceof UpstreamError && e.status === 404) return false;
+    throw e;
+  }
+}
+
 export const getSearch: RouteHandler = async (request, env) => {
   const url = new URL(request.url);
   const q = (url.searchParams.get("q") ?? "").trim();
@@ -40,6 +50,11 @@ export const getSearch: RouteHandler = async (request, env) => {
     if (kind === "hash") {
       const exists = await existsAccountBlock(env, normalizeHash(q));
       return ok<SearchResult>(exists ? { kind: "tx", target: normalizeHash(q) } : { kind: "not_found" });
+    }
+    if (kind === "momentum") {
+      const height = normalizeMomentum(q);
+      const exists = await existsMomentum(env, height);
+      return ok<SearchResult>(exists ? { kind: "momentum", target: height } : { kind: "not_found" });
     }
     if (kind === "ambiguous") {
       const [asAddress, asHash] = await Promise.all([
