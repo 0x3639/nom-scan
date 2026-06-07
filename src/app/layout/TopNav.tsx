@@ -22,7 +22,7 @@ export function TopNav() {
             <SearchInput
               compact
               enableShortcut
-              placeholder="Search by Address or Hash"
+              placeholder="Search by Address, Hash, or Momentum #"
             />
           </div>
         )}

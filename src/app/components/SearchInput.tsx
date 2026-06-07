@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search as SearchIcon } from "lucide-react";
-import { detectQueryType, normalizeAddress, normalizeHash } from "@shared/validate/identifier";
+import { detectQueryType, normalizeAddress, normalizeHash, normalizeMomentum } from "@shared/validate/identifier";
 import styles from "./SearchInput.module.css";
 
 interface Props {
@@ -13,7 +13,7 @@ interface Props {
 
 export function SearchInput({
   compact = false,
-  placeholder = "Search by Address or Hash",
+  placeholder = "Search by Address, Hash, or Momentum #",
   autoFocus = false,
   enableShortcut = false,
 }: Props) {
@@ -51,6 +51,8 @@ export function SearchInput({
       navigate(`/address/${normalizeAddress(q)}#portfolios`);
     } else if (kind === "hash") {
       navigate(`/tx/${normalizeHash(q)}`);
+    } else if (kind === "momentum") {
+      navigate(`/momentum/${normalizeMomentum(q)}`);
     } else if (kind === "ambiguous") {
       navigate(`/search?q=${encodeURIComponent(q)}`);
     } else {
