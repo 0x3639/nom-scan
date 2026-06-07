@@ -47,23 +47,39 @@ async function mintHs256(secret: string, subject: string, ttlSeconds: number): P
 }
 
 /**
+ * A pre-minted JWT: "eyJ"-prefixed header + three base64url segments. Used to tell
+ * a finished token apart from an HMAC signing secret (which has no such shape),
+ * so a token configured in either env var is forwarded verbatim rather than being
+ * mistakenly used as a signing key.
+ */
+function looksLikeJwt(value: string): boolean {
+  return /^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(value);
+}
+
+/**
  * Returns a Bearer-ready JWT string for nom-indexer-go.
- * Prefers a pre-minted env.NOM_INDEXER_JWT, falling back to HS256-signing a fresh
- * short-lived JWT from env.NOM_INDEXER_JWT_SECRET (cached in-isolate).
+ * Prefers a pre-minted env.NOM_INDEXER_JWT, falling back to env.NOM_INDEXER_JWT_SECRET.
+ * If that "secret" is itself a pre-minted JWT it is forwarded verbatim; otherwise it
+ * is treated as an HMAC key and used to sign a fresh short-lived JWT (cached in-isolate).
  */
 export async function getNomIndexerJwt(env: Env): Promise<string> {
   if (env.NOM_INDEXER_JWT) return env.NOM_INDEXER_JWT;
-  if (!env.NOM_INDEXER_JWT_SECRET) {
+  const secret = env.NOM_INDEXER_JWT_SECRET;
+  if (!secret) {
     throw new Error(
       "Worker is missing NOM_INDEXER_JWT and NOM_INDEXER_JWT_SECRET — cannot authenticate to upstream.",
     );
   }
+  // A finished token can't sign anything — forward it as-is. This makes a token
+  // configured under NOM_INDEXER_JWT_SECRET work the same as NOM_INDEXER_JWT.
+  if (looksLikeJwt(secret)) return secret;
+
   const now = Math.floor(Date.now() / 1000);
   if (cached && cached.expiresAt - REFRESH_BEFORE_EXPIRY_SECONDS > now) {
     return cached.token;
   }
   const subject = env.NOM_INDEXER_JWT_SUBJECT ?? "nomscan";
-  const token = await mintHs256(env.NOM_INDEXER_JWT_SECRET, subject, TTL_SECONDS);
+  const token = await mintHs256(secret, subject, TTL_SECONDS);
   cached = { token, expiresAt: now + TTL_SECONDS };
   return token;
 }

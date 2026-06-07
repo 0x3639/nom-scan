@@ -22,6 +22,15 @@ describe("getNomIndexerJwt", () => {
     expect(token).toBe("pre.minted.jwt");
   });
 
+  it("forwards a JWT-shaped NOM_INDEXER_JWT_SECRET verbatim instead of signing with it", async () => {
+    const { getNomIndexerJwt } = await import("./jwt");
+    // A real pre-minted token mistakenly placed in NOM_INDEXER_JWT_SECRET.
+    const preMinted =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbGF1ZGUtY2xpIn0.c2lnbmF0dXJlLXZhbHVl";
+    const token = await getNomIndexerJwt(envWith({ NOM_INDEXER_JWT_SECRET: preMinted }));
+    expect(token).toBe(preMinted);
+  });
+
   it("throws when both NOM_INDEXER_JWT and NOM_INDEXER_JWT_SECRET are absent", async () => {
     const { getNomIndexerJwt } = await import("./jwt");
     await expect(getNomIndexerJwt(envWith({}))).rejects.toThrow(/NOM_INDEXER_JWT_SECRET/);
