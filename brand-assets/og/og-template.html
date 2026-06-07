@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      /* Fonts are injected as @font-face by render.mjs (absolute file:// URLs to
+         the local @fontsource/montserrat woff2 files), so this template renders
+         identically with no network access. */
+      __FONTS__
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1200px; height: 630px; }
+      body {
+        position: relative;
+        overflow: hidden;
+        background: #0d1117;
+        color: #ffffff;
+        font-family: "Montserrat", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* Faint block-grid backdrop — reads as ledger/explorer texture. */
+      .grid {
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgba(108, 239, 75, 0.10) 1.4px, transparent 1.5px);
+        background-size: 34px 34px;
+        background-position: -17px -17px;
+        -webkit-mask-image: radial-gradient(ellipse 72% 78% at 50% 44%, #000 28%, transparent 82%);
+        mask-image: radial-gradient(ellipse 72% 78% at 50% 44%, #000 28%, transparent 82%);
+      }
+
+      /* Soft green glow behind the lockup. */
+      .glow {
+        position: absolute;
+        left: 50%;
+        top: 44%;
+        transform: translate(-50%, -50%);
+        width: 820px;
+        height: 820px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(108, 239, 75, 0.16), transparent 60%);
+      }
+
+      /* The framing "card". */
+      .frame {
+        position: absolute;
+        inset: 30px;
+        border: 1px solid rgba(108, 239, 75, 0.26);
+        border-radius: 26px;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+                    inset 0 60px 120px rgba(0, 0, 0, 0.35);
+      }
+
+      /* Explorer-style corner brackets. */
+      .corner {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        border: 3px solid #6cef4b;
+        opacity: 0.9;
+      }
+      .corner.tl { left: 48px; top: 48px; border-right: 0; border-bottom: 0; border-top-left-radius: 8px; }
+      .corner.tr { right: 48px; top: 48px; border-left: 0; border-bottom: 0; border-top-right-radius: 8px; }
+      .corner.bl { left: 48px; bottom: 48px; border-right: 0; border-top: 0; border-bottom-left-radius: 8px; }
+      .corner.br { right: 48px; bottom: 48px; border-left: 0; border-top: 0; border-bottom-right-radius: 8px; }
+
+      .content {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 60px;
+        padding-bottom: 38px;
+      }
+
+      .logo {
+        width: 196px;
+        height: auto;
+        filter: drop-shadow(0 0 26px rgba(108, 239, 75, 0.45));
+      }
+
+      .text { display: flex; flex-direction: column; }
+
+      .word {
+        font-weight: 800;
+        font-size: 108px;
+        line-height: 0.96;
+        letter-spacing: -0.015em;
+      }
+      .word .nom { color: #6cef4b; }
+      .word .scan { color: #ffffff; }
+
+      .tag {
+        margin-top: 20px;
+        /* Nudge right so the small-cap "Z" optically aligns under the large "N"
+           (the big wordmark has a much larger left side-bearing in px). */
+        margin-left: 7px;
+        font-weight: 700;
+        font-size: 23px;
+        letter-spacing: 0.34em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      /* Monospace ticker — a few faux explorer rows to signal "block explorer". */
+      .ticker {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 70px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 22px;
+        font-family: "SFMono-Regular", ui-monospace, "JetBrains Mono", Menlo, monospace;
+        font-size: 18px;
+        color: rgba(255, 255, 255, 0.32);
+        letter-spacing: 0.02em;
+      }
+      .ticker .dot { width: 6px; height: 6px; border-radius: 50%; background: #6cef4b; opacity: 0.7; }
+      .ticker .b { color: rgba(108, 239, 75, 0.6); }
+    </style>
+  </head>
+  <body>
+    <div class="grid"></div>
+    <div class="glow"></div>
+
+    <div class="frame"></div>
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+
+    <div class="content">
+      <svg class="logo" viewBox="43.2 23.2 123.7 157.7" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <clipPath id="moat" clipPathUnits="userSpaceOnUse">
+            <path clip-rule="evenodd"
+              d="M0,0 H210 V205 H0 Z M104,102 m-33,0 a33,33 0 1,0 66,0 a33,33 0 1,0 -66,0 Z" />
+          </clipPath>
+        </defs>
+        <g fill="none" stroke="#6cef4b" stroke-linecap="round" stroke-linejoin="round">
+          <g clip-path="url(#moat)">
+            <path stroke-width="13.3" d="M85,45 H158 L109,96" />
+            <path stroke-width="13.3" d="M99,108 L52,159 H125" />
+          </g>
+          <rect x="50.5" y="30.5" width="29" height="29" rx="2.5" stroke-width="10.45" />
+          <rect x="130.5" y="144.5" width="29" height="29" rx="2.5" stroke-width="10.45" />
+          <circle cx="104" cy="102" r="19" stroke-width="14.25" />
+        </g>
+      </svg>
+
+      <div class="text">
+        <div class="word"><span class="nom">NoM</span> <span class="scan">Scan</span></div>
+        <div class="tag">Zenon Network Block Explorer</div>
+      </div>
+    </div>
+
+    <div class="ticker">
+      <span><span class="b">addr</span>&nbsp;z1qqsq…7m4k</span>
+      <span class="dot"></span>
+      <span><span class="b">tx</span>&nbsp;9f3a…c12e</span>
+    </div>
+  </body>
+</html>

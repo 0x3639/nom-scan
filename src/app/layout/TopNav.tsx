@@ -10,6 +10,7 @@ export function TopNav() {
     <header className={styles.nav}>
       <div className={`${styles.inner} ${isHome ? styles.innerHome : ""}`}>
         <Link to="/" className={styles.brand} aria-label="NoM Scan home">
+          <img src="/nomscan-Z.svg" alt="" className={styles.brandLogo} aria-hidden="true" />
           <span className={styles.brandMark}>NoM</span>
           <span className={styles.brandWord}>Scan</span>
         </Link>

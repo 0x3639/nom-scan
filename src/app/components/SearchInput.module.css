@@ -36,6 +36,18 @@
   font-size: 13px;
 }
 
+/* Pin the compact (nav) search bar to exactly the Sign in button height (36px)
+   so the tx-view nav row matches the home view, which has no search bar.
+   Fixed height (border-box) avoids the input's intrinsic height nudging it taller. */
+.compact.wrap {
+  height: 36px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.compact .submit {
+  min-height: 24px;
+}
+
 .hero {
   padding: 14px 16px;
   border-radius: var(--radius-lg);
