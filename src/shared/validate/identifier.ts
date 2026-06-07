@@ -4,9 +4,12 @@ export type QueryType = "address" | "hash" | "momentum" | "ambiguous" | "invalid
 // Pin the body length exactly so wrong-length / over-length strings don't pass.
 const ADDRESS_RE = /^z1[02-9ac-hj-np-z]{38}$/;
 const HEX64_RE = /^[0-9a-fA-F]{64}$/;
-// A momentum height is a positive integer with no leading zero. Cap the length
-// so absurd inputs can't pass (chain height stays well under 18 digits).
-const MOMENTUM_RE = /^[1-9]\d{0,17}$/;
+// A momentum height is a positive integer with no leading zero. Cap at 15 digits
+// so the value always stays within Number.MAX_SAFE_INTEGER (~9.007e15): the Worker
+// and UI convert heights to Number for path building / nav math, so a larger value
+// would round and look up the wrong momentum. 15 digits is astronomically beyond
+// any real chain height.
+const MOMENTUM_RE = /^[1-9]\d{0,14}$/;
 
 /** Strips an optional 0x prefix and lowercases for hash lookup. */
 export function normalizeHash(input: string): string {

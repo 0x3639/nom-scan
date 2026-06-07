@@ -37,9 +37,11 @@ describe("momentum height detection", () => {
     expect(detectQueryType("a".repeat(64))).toBe("hash");
   });
 
-  it("rejects absurdly long digit strings (>18 digits)", () => {
-    expect(isMomentumHeight("1".repeat(19))).toBe(false);
-    expect(isMomentumHeight("1".repeat(18))).toBe(true);
+  it("caps digit length at 15 so heights stay within Number.MAX_SAFE_INTEGER", () => {
+    expect(isMomentumHeight("1".repeat(16))).toBe(false);
+    expect(isMomentumHeight("1".repeat(15))).toBe(true);
+    // The largest accepted value must round-trip through Number() exactly.
+    expect(Number("9".repeat(15)) < Number.MAX_SAFE_INTEGER).toBe(true);
   });
 
   it("normalizeMomentum trims to the canonical digit string", () => {
