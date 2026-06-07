@@ -1,5 +1,7 @@
 # NoM Scan
 
+**Live:** <https://nom-scan.0x3639.workers.dev>
+
 A Zenon Network block explorer (search, address pages, transaction details). Built as a Cloudflare-hosted React SPA with a Cloudflare Worker that proxies authenticated requests to `nom-indexer-go`. See [`docs/NOMSCAN_SPEC.md`](./docs/NOMSCAN_SPEC.md) for the product spec (originally written as "PFScan"; the project was fully renamed to "NoM Scan" / `nomscan`) and [`CLAUDE.md`](./CLAUDE.md) for the architectural cheat sheet. Project docs (spec, handoff, peer review) live in [`docs/`](./docs).
 
 ## Local development
