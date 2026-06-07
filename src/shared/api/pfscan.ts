@@ -32,7 +32,7 @@ export type PFScanResponse<T> =
   | { ok: false; error: PFScanError };
 
 // ── Search ───────────────────────────────────────────────────────────────────
-export type SearchKind = "address" | "tx" | "not_found";
+export type SearchKind = "address" | "tx" | "momentum" | "not_found";
 export interface SearchResult {
   kind: SearchKind;
   target?: string;
@@ -113,4 +113,27 @@ export interface TxDetail extends TxRow {
 /** Pick the best available timestamp (seconds) for a tx-like object. */
 export function txTimestamp(tx: { momentum_timestamp?: number | null; timestamp?: number | null }): number | null {
   return tx.momentum_timestamp ?? tx.timestamp ?? null;
+}
+
+// ── Momentum ─────────────────────────────────────────────────────────────────
+export interface MomentumDetail {
+  height: number;
+  hash: string;
+  /** Unix-seconds timestamp. */
+  timestamp: number;
+  /** Account-blocks contained in this momentum. */
+  tx_count: number;
+  producer: string;
+  producer_owner?: string;
+  producer_name?: string;
+  /**
+   * Derived by the Worker from the momentum at height-1. Absent at height 1 or
+   * if the previous momentum couldn't be fetched. (The indexer's Momentum object
+   * does not yet expose previousHash directly.)
+   */
+  previous_hash?: string;
+  // The Worker proxies the upstream momentum object directly; unknown fields are
+  // preserved so the Raw data view auto-upgrades when the indexer adds raw node
+  // fields (publicKey, signature, changesHash, …).
+  [key: string]: unknown;
 }
