@@ -1,15 +1,12 @@
 import type { RouteHandler } from "../router";
 import { nomIndexerFetch } from "../upstream";
 import { ok, err, errorFromThrown } from "../respond";
+import { isMomentumHeight } from "@shared/validate/identifier";
 import type { MomentumDetail } from "@shared/api/pfscan";
-
-// Positive integer, no leading zero, capped length. Mirrors MOMENTUM_RE in
-// the shared identifier validator.
-const HEIGHT_RE = /^[1-9]\d{0,17}$/;
 
 export const getMomentum: RouteHandler = async (_request, env, _ctx, params) => {
   const heightStr = params["height"] ?? "";
-  if (!HEIGHT_RE.test(heightStr)) {
+  if (!isMomentumHeight(heightStr)) {
     return err("bad_request", "Invalid or missing momentum height.", 400);
   }
   const height = Number(heightStr);
