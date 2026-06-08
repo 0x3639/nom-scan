@@ -25,7 +25,7 @@
 
   "env": {
     "production": {
-      "name": "nomscan",
+      "name": "nom-scan",
       // Production-only non-secret vars. NOM_INDEXER_JWT_SECRET is a secret, set via:
       //   wrangler secret put NOM_INDEXER_JWT_SECRET --env production
       "vars": {
