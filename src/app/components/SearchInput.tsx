@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search as SearchIcon } from "lucide-react";
+import { CornerDownLeft, Search as SearchIcon, X } from "lucide-react";
 import { detectQueryType, normalizeAddress, normalizeHash, normalizeMomentum } from "@shared/validate/identifier";
 import styles from "./SearchInput.module.css";
 
@@ -42,6 +42,13 @@ export function SearchInput({
     return () => window.removeEventListener("keydown", onKey);
   }, [enableShortcut]);
 
+  const hasValue = value.trim().length > 0;
+
+  function clear() {
+    setValue("");
+    inputRef.current?.focus();
+  }
+
   function submit(e: FormEvent) {
     e.preventDefault();
     const q = value.trim();
@@ -79,12 +86,23 @@ export function SearchInput({
         value={value}
         onChange={(e) => setValue(e.target.value)}
       />
-      {!compact && (
-        <kbd className={styles.kbd} aria-hidden>/</kbd>
+      {hasValue ? (
+        <>
+          <button
+            type="button"
+            className={styles.clear}
+            onClick={clear}
+            aria-label="Clear search"
+          >
+            <X size={compact ? 16 : 18} aria-hidden />
+          </button>
+          <button type="submit" className={styles.submit} aria-label="Search">
+            <CornerDownLeft size={compact ? 16 : 18} aria-hidden />
+          </button>
+        </>
+      ) : (
+        !compact && <kbd className={styles.kbd} aria-hidden>/</kbd>
       )}
-      <button type="submit" className={styles.submit}>
-        Search
-      </button>
     </form>
   );
 }

@@ -31,6 +31,11 @@
   color: var(--color-subtle);
   font-family: var(--font-sans);
 }
+/* Hide the browser's native type="search" clear control; we render our own X. */
+.input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
 
 .compact .input {
   font-size: 13px;
@@ -44,8 +49,10 @@
   padding-top: 0;
   padding-bottom: 0;
 }
+.compact .clear,
 .compact .submit {
-  min-height: 24px;
+  width: 24px;
+  height: 24px;
 }
 
 .hero {
@@ -71,26 +78,36 @@
   font-family: var(--font-mono);
 }
 
+/* Icon-only actions that appear once the field has a value, mirroring the
+   Blockscan pattern (clear + submit). Empty field stays plain. */
+.clear,
 .submit {
   display: inline-flex;
   align-items: center;
-  min-height: 36px;
-  padding: 6px 16px;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
   border-radius: var(--radius-sm);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  font-weight: 700;
-  font-size: 13px;
+  background: transparent;
+  border: none;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: background-color 120ms, color 120ms, border-color 120ms;
+}
+.clear:hover {
+  color: var(--color-text);
+  background: var(--color-surface-hover);
+}
+.submit {
+  border: 1px solid var(--color-border);
 }
 .submit:hover {
-  background: var(--color-primary-hover);
   color: var(--color-on-primary);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
 }
 
 @media (max-width: 640px) {
-  .submit {
-    min-height: 40px;
-    padding: 6px 14px;
-  }
   .kbd { display: none; }
 }
