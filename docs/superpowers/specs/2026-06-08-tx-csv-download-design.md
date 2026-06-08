@@ -85,7 +85,7 @@ Behavior:
 | `timestamp_unix` | same | integer seconds; empty if missing |
 | `from_address` | `row.address` | |
 | `to_address` | `row.to_address` | empty if null |
-| `amount` | `rawToPlainDecimal(row.amount, decimals)` | full-precision decimal **string math, no thousands separators**, e.g. `12.5`; empty if no amount |
+| `amount` | `formatAmount(row.amount, decimals, { group: false, maxFractionDigits: decimals })` | full-precision decimal, **no thousands separators**, e.g. `12.5`; empty if no amount |
 | `token_symbol` | `TokenMeta.symbol` | empty if unknown |
 | `amount_raw` | `row.amount` | raw integer string, passed through; empty if null |
 | `token_standard` | `row.token_standard` | empty if null |
@@ -95,13 +95,14 @@ Behavior:
 - First line is the header row with these exact column names.
 - Line terminator `\r\n` (RFC 4180).
 
-**`rawToPlainDecimal(raw, decimals)`** — a new pure helper in
-`src/shared/format/amount.ts` (unit-tested). Converts a raw integer **string**
-to a plain decimal **string** using string math only (NEVER `Number()` — amounts
-can exceed `Number.MAX_SAFE_INTEGER`): left-pad to `decimals+1` digits, insert
-the decimal point, strip trailing zeros and a trailing `.`. Examples:
-`("1250000000", 8) → "12.5"`, `("5", 8) → "0.00000005"`, `("100000000", 8) → "1"`,
-`("0", 8) → "0"`.
+**Plain-decimal amount:** reuse the existing `formatAmount` helper with
+`{ group: false, maxFractionDigits: decimals }`. It is already BigInt-based (never
+coerces to `Number`, so it is safe for values beyond `Number.MAX_SAFE_INTEGER`),
+returns no thousands separators when `group: false`, and trims trailing zeros —
+e.g. `formatAmount("1250000000", 8, { group: false }) → "12.5"`,
+`formatAmount("5", 8, { group: false }) → "0.00000005"`. No new helper needed.
+When `row.amount` is null/empty the column is left blank (the route skips
+`formatAmount`, which would otherwise return `"0"`).
 
 **Escaping (CSV-injection-safe), in a `csvCell(value)` helper:**
 - Convert null/undefined to `""`.
@@ -140,9 +141,6 @@ transactions pagination, pass that `total` as `txCount`.
 
 ### Testing
 
-- `src/shared/format/amount.test.ts` (extend): `rawToPlainDecimal` cases —
-  whole numbers, fractional, leading zeros, `0`, large values beyond
-  `Number.MAX_SAFE_INTEGER`, `decimals = 0`.
 - `src/worker/routes/transactions-csv.test.ts` (new, follows
   `routes/search.test.ts` style, mocking `../upstream` and `../services/tokens`):
   - Aggregates multiple pages (e.g. a 200-row page then a 30-row page → 230 data
