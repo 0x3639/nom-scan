@@ -29,7 +29,7 @@ export function clampPage(raw: string | null): number {
   return n;
 }
 
-export const getTransactions: RouteHandler = async (request, env, _ctx) => {
+export const getTransactions: RouteHandler = async (request, env) => {
   const url = new URL(request.url);
   const page = clampPage(url.searchParams.get("page"));
   const pageSize = clampAllowedPageSize(url.searchParams.get("page_size"));

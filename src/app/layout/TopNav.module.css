@@ -65,6 +65,23 @@
   gap: 14px;
 }
 
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-muted);
+  letter-spacing: var(--tracking);
+  transition: color 120ms;
+}
+.navLink:hover {
+  color: var(--color-text);
+}
+
+@media (max-width: 640px) {
+  .navLink { display: none; }
+}
+
 .account {
   display: inline-flex;
   align-items: center;

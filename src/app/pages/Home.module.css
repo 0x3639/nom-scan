@@ -52,3 +52,15 @@
     margin-top: 32px;
   }
 }
+
+.taglineLink {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border);
+  text-underline-offset: 3px;
+  transition: color 120ms, text-decoration-color 120ms;
+}
+.taglineLink:hover {
+  color: var(--color-text);
+  text-decoration-color: var(--color-primary);
+}

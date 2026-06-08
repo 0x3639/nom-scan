@@ -31,6 +31,7 @@ export function TopNav() {
         )}
 
         <div className={styles.right}>
+          <Link to="/txs" className={styles.navLink}>Transactions</Link>
           {isShareable && <ShareButton />}
           <Link to="/login" className={styles.account}>Sign in</Link>
         </div>
