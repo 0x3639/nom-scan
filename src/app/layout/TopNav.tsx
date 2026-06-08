@@ -1,10 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
 import { SearchInput } from "../components/SearchInput";
+import { ShareButton } from "../components/ShareButton";
 import styles from "./TopNav.module.css";
 
 export function TopNav() {
   const location = useLocation();
   const isHome = location.pathname === "/";
+  // Resource detail pages have a specific URL worth sharing.
+  const isShareable = /^\/(tx|address|momentum)\//.test(location.pathname);
 
   return (
     <header className={styles.nav}>
@@ -28,6 +31,7 @@ export function TopNav() {
         )}
 
         <div className={styles.right}>
+          {isShareable && <ShareButton />}
           <Link to="/login" className={styles.account}>Sign in</Link>
         </div>
       </div>
