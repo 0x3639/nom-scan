@@ -21,7 +21,7 @@ export function Footer() {
         <span className={styles.dot}>·</span>
         <a href="https://zenonhub.io" rel="noreferrer noopener" target="_blank">Zenon Hub</a>
         <div className={styles.right}>
-          <a className={styles.iconLink} href="https://github.com/0x3639/nomscan" rel="noreferrer noopener" target="_blank">
+          <a className={styles.iconLink} href="https://github.com/0x3639/nom-scan" rel="noreferrer noopener" target="_blank">
             <GithubMark />
             GitHub
           </a>
