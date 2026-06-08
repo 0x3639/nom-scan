@@ -11,6 +11,7 @@ import {
 import { getTransaction } from "./routes/tx";
 import { getMomentum } from "./routes/momentum";
 import { getTransactions } from "./routes/transactions";
+import { getAddressTransactionsCsv } from "./routes/transactions-csv";
 import { getTokenMeta } from "./routes/tokens";
 import { getPrices } from "./routes/prices";
 
@@ -21,6 +22,7 @@ const api = new ApiRouter()
   .get("/api/address/:address/summary", getAddressSummary)
   .get("/api/address/:address/balances", getAddressBalances)
   .get("/api/address/:address/transactions", getAddressTransactions)
+  .get("/api/address/:address/transactions.csv", getAddressTransactionsCsv)
   .get("/api/tx/:hash", getTransaction)
   .get("/api/momentum/:height", getMomentum)
   .get("/api/tokens/:standard", getTokenMeta)

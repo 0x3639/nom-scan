@@ -41,3 +41,15 @@
   .tableWrap { display: none; }
   .listWrap { display: block; }
 }
+
+.summaryRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.summaryRow .summary {
+  margin-bottom: 0;
+}
