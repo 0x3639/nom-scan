@@ -60,7 +60,6 @@ export function AddressSummary({ address }: Props) {
   const txCount = typeof data?.tx_count === "number" ? data.tx_count : undefined;
   const firstSeen = typeof data?.first_seen === "number" ? data.first_seen : null;
   const lastSeen = typeof data?.last_seen === "number" ? data.last_seen : null;
-  const delegate = typeof data?.delegate === "string" ? data.delegate : null;
 
   return (
     <section aria-label="Address summary">
@@ -101,13 +100,6 @@ export function AddressSummary({ address }: Props) {
         )}
       </Card>
       </div>
-      {delegate ? (
-        <div className={styles.belowGrid}>
-          <Card label="Delegate">
-            <Value mono muted>{delegate}</Value>
-          </Card>
-        </div>
-      ) : null}
     </section>
   );
 }

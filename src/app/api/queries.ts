@@ -111,6 +111,45 @@ export function usePrefetchNextTransactions(
   }, [qc, address, params.page, params.pageSize, params.sort, params.hasNext]);
 }
 
+function recentTxPath(page: number, pageSize: number, sort: "asc" | "desc"): string {
+  return `/api/transactions?page=${page}&page_size=${pageSize}&sort=${sort}`;
+}
+
+/**
+ * Network-wide latest account-blocks for the /txs page. Returns the full
+ * NomScanResult so the page can read both `.data` (rows) and `.pagination`.
+ */
+export function useRecentTransactions(params: TxListParams) {
+  const page = params.page ?? 1;
+  const pageSize = params.pageSize ?? 10;
+  const sort = params.sort ?? "desc";
+  return useQuery({
+    queryKey: ["transactions", page, pageSize, sort],
+    queryFn: () => nomscanFetch<TxRow[]>(recentTxPath(page, pageSize, sort)),
+    staleTime: STALE.address,
+    placeholderData: keepPreviousData,
+  });
+}
+
+/** Warm page N+1 of the latest-transactions list in the background. */
+export function usePrefetchNextRecentTransactions(params: {
+  page: number;
+  pageSize: number;
+  sort: "asc" | "desc";
+  hasNext: boolean;
+}) {
+  const qc = useQueryClient();
+  useEffect(() => {
+    if (!params.hasNext) return;
+    const next = params.page + 1;
+    void qc.prefetchQuery({
+      queryKey: ["transactions", next, params.pageSize, params.sort],
+      queryFn: () => nomscanFetch<TxRow[]>(recentTxPath(next, params.pageSize, params.sort)),
+      staleTime: STALE.address,
+    });
+  }, [qc, params.page, params.pageSize, params.sort, params.hasNext]);
+}
+
 /**
  * Bulk lookup of token metadata for a set of token standards. Each standard
  * becomes its own dedup'd useQuery — so 25 rows referencing 3 unique tokens
