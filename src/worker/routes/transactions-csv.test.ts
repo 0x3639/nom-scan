@@ -55,6 +55,10 @@ describe("csvCell", () => {
     expect(csvCell("-1")).toBe('"\'-1"');
     expect(csvCell("@x")).toBe('"\'@x"');
   });
+  it("neutralizes a formula char hidden behind leading whitespace", () => {
+    expect(csvCell(" =1+1")).toBe('"\' =1+1"');
+    expect(csvCell("\t=cmd")).toBe('"\'\t=cmd"');
+  });
 });
 
 describe("getAddressTransactionsCsv", () => {

@@ -23,10 +23,12 @@ const CSV_COLUMNS = [
 ] as const;
 
 // Quote every field and double internal quotes; neutralize spreadsheet formula
-// injection by prefixing a leading = + - @ with a single quote. Exported for tests.
+// injection by prefixing a single quote when the cell — ignoring any leading
+// tab/CR/space — starts with = + - @. The leading-whitespace case matters because
+// token_symbol is attacker-controllable (set by the token issuer). Exported for tests.
 export function csvCell(value: string | number | null | undefined): string {
   let s = value == null ? "" : String(value);
-  if (/^[=+\-@]/.test(s)) s = `'${s}`;
+  if (/^[\t\r ]*[=+\-@]/.test(s)) s = `'${s}`;
   return `"${s.replace(/"/g, '""')}"`;
 }
 
