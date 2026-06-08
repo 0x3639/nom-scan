@@ -1,0 +1,35 @@
+# NoM Scan
+
+> NoM Scan is a public block explorer for the Zenon Network (Network of Momentum / NoM). It lets anyone look up addresses, account balances and portfolios, transactions (account blocks), and momentums (blocks). The site is a client-rendered single-page app, so automated readers should prefer the JSON API endpoints below, which return structured data without needing to execute JavaScript.
+
+## How the data works
+
+- All `/api/*` endpoints are public, return JSON, and require no authentication or API key.
+- Amounts are returned as **strings** (not numbers) to preserve precision; treat them as integers in the token's smallest unit.
+- Collection endpoints return `{ "data": [...], "pagination": {...} }`; single-object endpoints return the object directly.
+- Pagination uses `page` (1-based) and `page_size` (default 50, max 200) query parameters.
+- Addresses are Zenon `z1...` strings. Transaction and momentum hashes are 64-character hex (an optional `0x` prefix is stripped).
+
+## JSON API (preferred for machines)
+
+- [Network status](https://nomscan.app/api/status): current chain/indexer status.
+- [Search](https://nomscan.app/api/search?q=QUERY): resolves an address, transaction hash, or momentum height; returns the matched entity and its type.
+- [Address summary](https://nomscan.app/api/address/{address}/summary): account overview for a `z1...` address.
+- [Address balances](https://nomscan.app/api/address/{address}/balances): per-token balances (portfolio) for an address.
+- [Address transactions](https://nomscan.app/api/address/{address}/transactions?page=1&page_size=50): paginated account blocks for an address.
+- [Transaction detail](https://nomscan.app/api/tx/{hash}): a single transaction (account block) by hash.
+- [Momentum detail](https://nomscan.app/api/momentum/{height}): a single momentum (block) by height.
+- [Token metadata](https://nomscan.app/api/tokens/{standard}): metadata for a token by its `zts...` standard.
+- [Prices](https://nomscan.app/api/prices): fiat valuation feed used for portfolio totals.
+
+## Human-facing pages
+
+- [Home](https://nomscan.app/): search entry point.
+- [Address](https://nomscan.app/address/{address}): portfolio (`#portfolios`) and transactions (`#transactions`) tabs for an address.
+- [Transaction](https://nomscan.app/tx/{hash}): account block detail.
+- [Momentum](https://nomscan.app/momentum/{height}): momentum (block) detail.
+
+## Notes
+
+- Account-related pages (`/login`, `/account`, `/account/watchlist`) are placeholders and have no public data yet.
+- Crawling is welcome; see [robots.txt](https://nomscan.app/robots.txt). Please respect the indexer's rate limits by keeping request rates reasonable.

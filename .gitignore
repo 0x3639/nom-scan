@@ -19,3 +19,6 @@ test-results
 api.txt
 *.pem
 *.key
+
+# Local scratch — contains a Google PageSpeed API key, never commit
+pagespeed.txt
