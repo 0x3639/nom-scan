@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAddressTransactions, usePrefetchNextTransactions } from "../../api/queries";
 import { Pagination } from "../Pagination";
+import { DownloadCsvButton } from "./DownloadCsvButton";
 import { TxTable } from "../tx/TxTable";
 import { TxList } from "../tx/TxList";
 import { SkeletonRows } from "../state/Skeleton";
@@ -58,13 +59,16 @@ export function TransactionsTab({ address }: Props) {
 
   return (
     <div>
-      {typeof total === "number" ? (
-        <div className={styles.summary}>
-          <span className={styles.totalLabel}>Total</span>
-          <span className={`mono ${styles.totalValue}`}>{total.toLocaleString()}</span>
-          <span className={styles.totalLabel}>transactions</span>
-        </div>
-      ) : null}
+      <div className={styles.summaryRow}>
+        {typeof total === "number" ? (
+          <div className={styles.summary}>
+            <span className={styles.totalLabel}>Total</span>
+            <span className={`mono ${styles.totalValue}`}>{total.toLocaleString()}</span>
+            <span className={styles.totalLabel}>transactions</span>
+          </div>
+        ) : <span />}
+        <DownloadCsvButton address={address} {...(typeof total === "number" ? { txCount: total } : {})} />
+      </div>
       <div className={styles.tableWrap} aria-busy={isStale}>
         <div style={{ opacity: isStale ? 0.55 : 1, transition: "opacity 120ms" }}>
           <TxTable rows={rowsRaw} viewedAddress={address} />
