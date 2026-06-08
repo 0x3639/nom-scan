@@ -10,12 +10,14 @@ import {
 } from "./routes/address";
 import { getTransaction } from "./routes/tx";
 import { getMomentum } from "./routes/momentum";
+import { getTransactions } from "./routes/transactions";
 import { getTokenMeta } from "./routes/tokens";
 import { getPrices } from "./routes/prices";
 
 const api = new ApiRouter()
   .get("/api/status", getStatus)
   .get("/api/search", getSearch)
+  .get("/api/transactions", getTransactions)
   .get("/api/address/:address/summary", getAddressSummary)
   .get("/api/address/:address/balances", getAddressBalances)
   .get("/api/address/:address/transactions", getAddressTransactions)
