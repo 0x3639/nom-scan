@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useRecentTransactions, usePrefetchNextRecentTransactions } from "../api/queries";
 import { Pagination } from "../components/Pagination";
 import { PageSizeSelect } from "../components/PageSizeSelect";
@@ -9,9 +9,38 @@ import { EmptyState } from "../components/state/EmptyState";
 import { ErrorState } from "../components/state/ErrorState";
 import styles from "./RecentTxPage.module.css";
 
+// Page + page-size live in the URL query string so the back button, refresh,
+// and direct links all restore the user's view. The chosen size is also kept
+// in localStorage so a fresh visit to /txs (no params) remembers it.
+const ALLOWED_PAGE_SIZES = [10, 25, 50, 100];
+const DEFAULT_PAGE_SIZE = 10;
+const PAGE_SIZE_STORAGE_KEY = "nomscan.txs.pageSize";
+
+function readStoredPageSize(): number {
+  try {
+    const n = Number(window.localStorage.getItem(PAGE_SIZE_STORAGE_KEY));
+    return ALLOWED_PAGE_SIZES.includes(n) ? n : DEFAULT_PAGE_SIZE;
+  } catch {
+    return DEFAULT_PAGE_SIZE;
+  }
+}
+
+function parsePageSize(raw: string | null): number | null {
+  const n = Number(raw);
+  return ALLOWED_PAGE_SIZES.includes(n) ? n : null;
+}
+
+function parsePage(raw: string | null): number {
+  const n = Number.parseInt(raw ?? "", 10);
+  return Number.isFinite(n) && n > 0 ? n : 1;
+}
+
 export function RecentTxPage() {
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parsePage(searchParams.get("page"));
+  // Prefer an explicit ?size= param; otherwise fall back to the last-remembered
+  // choice (localStorage), then the default.
+  const pageSize = parsePageSize(searchParams.get("size")) ?? readStoredPageSize();
   const q = useRecentTransactions({ page, pageSize, sort: "desc" });
 
   const rows = q.data?.data ?? [];
@@ -23,9 +52,22 @@ export function RecentTxPage() {
 
   usePrefetchNextRecentTransactions({ page, pageSize, sort: "desc", hasNext });
 
+  function setPage(next: number) {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", String(next));
+    setSearchParams(params, { replace: true });
+  }
+
   function changePageSize(next: number) {
-    setPageSize(next);
-    setPage(1);
+    try {
+      window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
+    } catch {
+      // localStorage may be unavailable (private mode); URL state still works.
+    }
+    const params = new URLSearchParams(searchParams);
+    params.set("size", String(next));
+    params.set("page", "1");
+    setSearchParams(params, { replace: true });
   }
 
   return (
