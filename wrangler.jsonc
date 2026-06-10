@@ -19,6 +19,22 @@
     "binding": "ASSETS",
     "not_found_handling": "single-page-application"
   },
+  // Per-client (IP) fairness limit on /api/*. The upstream indexer rate-limits
+  // per JWT subject, and ALL end users share the one `nomscan` subject — this
+  // binding keeps a single greedy client from draining that shared budget.
+  // Counts are per-colo and best-effort (period must be 10 or 60 seconds).
+  // NOTE: wrangler 3.x declares the rate-limit binding under unsafe.bindings;
+  // when upgrading to wrangler 4 move this to the top-level "ratelimits" key.
+  "unsafe": {
+    "bindings": [
+      {
+        "name": "API_LIMITER",
+        "type": "ratelimit",
+        "namespace_id": "1001",
+        "simple": { "limit": 100, "period": 60 }
+      }
+    ]
+  },
   "observability": {
     "enabled": true
   },
@@ -32,6 +48,17 @@
         "NOM_INDEXER_BASE_URL": "https://indexerapi.zenon.info",
         "NOM_INDEXER_JWT_SUBJECT": "nomscan",
         "NOMSCAN_ENV": "production"
+      },
+      // Bindings are NOT inherited from the top level — repeat the limiter here.
+      "unsafe": {
+        "bindings": [
+          {
+            "name": "API_LIMITER",
+            "type": "ratelimit",
+            "namespace_id": "1001",
+            "simple": { "limit": 100, "period": 60 }
+          }
+        ]
       }
       // No "routes" yet — deploys to the workers.dev subdomain (nomscan.<subdomain>.workers.dev).
       // To serve on a custom domain later, add e.g.:
