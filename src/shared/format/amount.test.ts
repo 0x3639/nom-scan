@@ -16,6 +16,20 @@ describe("formatAmount", () => {
   it("returns invalid raw values unchanged", () => {
     expect(formatAmount("not-a-number", 8)).toBe("not-a-number");
   });
+
+  it("shows a below-precision indicator instead of '0' for nonzero dust", () => {
+    // An 18-decimal token balance below 10^10 base units has no significant
+    // digit within the default 8 display digits — it must not render as "0".
+    expect(formatAmount("9999999999", 18)).toBe("< 0.00000001");
+    expect(formatAmount("-9999999999", 18)).toBe("> -0.00000001");
+    // A value with a significant digit in range still formats normally.
+    expect(formatAmount("10000000000", 18)).toBe("0.00000001");
+  });
+
+  it("canonicalizes zero-padded raw values", () => {
+    expect(formatAmount("0123", 2)).toBe("1.23");
+    expect(formatAmount("007", 0)).toBe("7");
+  });
 });
 
 describe("parseAmount", () => {

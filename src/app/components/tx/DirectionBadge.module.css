@@ -11,16 +11,18 @@
   border: 1px solid transparent;
 }
 
+/* Tints derive from the theme tokens via color-mix so a token change in
+   tokens.css restyles the badges with it. */
 .in {
   color: var(--color-success);
-  background: rgba(108, 239, 75, 0.1);
-  border-color: rgba(108, 239, 75, 0.3);
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-success) 30%, transparent);
 }
 
 .out {
   color: var(--color-warning);
-  background: rgba(255, 126, 69, 0.1);
-  border-color: rgba(255, 126, 69, 0.3);
+  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-warning) 30%, transparent);
 }
 
 .self {
@@ -30,7 +32,7 @@
 }
 
 .pair {
-  color: #8ab4ff;
-  background: rgba(138, 180, 255, 0.1);
-  border-color: rgba(138, 180, 255, 0.3);
+  color: var(--color-info);
+  background: color-mix(in srgb, var(--color-info) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-info) 30%, transparent);
 }

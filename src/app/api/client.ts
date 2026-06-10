@@ -30,12 +30,19 @@ export async function nomscanFetch<T>(path: string, init?: RequestInit): Promise
     ...init,
     headers: { Accept: "application/json", ...(init?.headers ?? {}) },
   });
-  let body: NomScanResponse<T> | null = null;
+  let parsed: unknown = null;
   try {
-    body = (await res.json()) as NomScanResponse<T>;
+    parsed = await res.json();
   } catch {
-    body = null;
+    parsed = null;
   }
+  // Guard the envelope shape — an intermediary (edge error page, proxy) can
+  // return valid JSON that isn't a NomScanResponse, and reading `.error.message`
+  // off it would throw a TypeError that masks the real failure.
+  const body =
+    parsed !== null && typeof parsed === "object" && "ok" in parsed
+      ? (parsed as NomScanResponse<T>)
+      : null;
   if (!body) {
     throw new NomScanFetchError({
       code: "internal",
@@ -44,7 +51,11 @@ export async function nomscanFetch<T>(path: string, init?: RequestInit): Promise
     });
   }
   if (!body.ok) {
-    throw new NomScanFetchError(body.error);
+    const error =
+      body.error && typeof body.error === "object"
+        ? body.error
+        : { code: "internal" as const, message: `Malformed error from ${path}`, status: res.status };
+    throw new NomScanFetchError(error);
   }
   return { data: body.data, ...(body.pagination ? { pagination: body.pagination } : {}) };
 }

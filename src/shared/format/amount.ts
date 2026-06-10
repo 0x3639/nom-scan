@@ -33,6 +33,8 @@ export function formatAmount(
     value = value.slice(1);
   }
   if (!/^\d+$/.test(value)) return raw;
+  // Canonicalize zero-padded raw values ("0123" with 2 decimals is 1.23, not 01.23).
+  value = value.replace(/^0+(?=\d)/, "");
 
   if (decimals <= 0) {
     const intPart = group ? groupThousands(value) : value;
@@ -43,7 +45,9 @@ export function formatAmount(
   const intDigits = padded.slice(0, padded.length - decimals);
   let fracDigits = padded.slice(padded.length - decimals);
 
+  let truncatedNonzero = false;
   if (fracDigits.length > maxFractionDigits) {
+    truncatedNonzero = /[1-9]/.test(fracDigits.slice(maxFractionDigits));
     fracDigits = fracDigits.slice(0, maxFractionDigits);
   }
   if (trimZeros) {
@@ -51,6 +55,14 @@ export function formatAmount(
   }
   const intOut = group ? groupThousands(intDigits) : intDigits;
   const result = fracDigits ? `${intOut}.${fracDigits}` : intOut;
+  // A nonzero balance must never display as plain "0" — when every significant
+  // digit sits below maxFractionDigits (e.g. an 18-decimal token's dust with the
+  // default 8 display digits), show a below-precision indicator instead.
+  // Mirrors the "< $0.01" / "> -$0.01" convention in money.ts.
+  if (truncatedNonzero && /^0*$/.test(intDigits) && !fracDigits) {
+    const smallest = maxFractionDigits > 0 ? `0.${"0".repeat(maxFractionDigits - 1)}1` : "1";
+    return negative ? `> -${smallest}` : `< ${smallest}`;
+  }
   return negative && result !== "0" ? `-${result}` : result;
 }
 

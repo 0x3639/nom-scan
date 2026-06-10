@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { detectQueryType, isAddress, isHash, normalizeAddress, normalizeHash } from "./identifier";
+import {
+  detectQueryType,
+  isAddress,
+  isHash,
+  isTokenStandard,
+  normalizeAddress,
+  normalizeHash,
+  normalizeMomentum,
+} from "./identifier";
 
 const VALID_ADDR = "z1qxemdeddedxplasmaxxxxxxxxxxxxxxxxsctrp"; // 40 chars (z1 + 38 body)
 
@@ -33,13 +41,42 @@ describe("isHash boundaries", () => {
 });
 
 describe("normalization", () => {
-  it("preserves address case (Bech32 is case-sensitive) and trims", () => {
+  it("preserves mixed address case (invalid in Bech32) and trims", () => {
     expect(normalizeAddress("  z1AbC  ")).toBe("z1AbC");
+  });
+
+  it("folds the BIP-173 all-uppercase form (QR codes) to canonical lowercase", () => {
+    expect(normalizeAddress(VALID_ADDR.toUpperCase())).toBe(VALID_ADDR);
+    expect(isAddress(VALID_ADDR.toUpperCase())).toBe(true);
   });
 
   it("strips 0x / 0X and lowercases hashes", () => {
     expect(normalizeHash(`0X${"A".repeat(64)}`)).toBe("a".repeat(64));
     expect(normalizeHash("AbCd")).toBe("abcd");
+  });
+
+  it("strips momentum commas only at correct 3-digit group positions", () => {
+    expect(normalizeMomentum("12,708,298")).toBe("12708298");
+    // Malformed grouping must NOT silently collapse into a different height.
+    expect(normalizeMomentum("1,2")).toBe("1,2");
+    expect(detectQueryType("1,2")).toBe("invalid");
+    expect(detectQueryType("12,,34")).toBe("invalid");
+  });
+});
+
+describe("isTokenStandard", () => {
+  it("accepts real ZTS standards", () => {
+    expect(isTokenStandard("zts1znnxxxxxxxxxxxxx9z4ulx")).toBe(true);
+    expect(isTokenStandard("zts1qsrxxxxxxxxxxxxxmrhjll")).toBe(true);
+  });
+
+  it("rejects wrong length, wrong prefix, and junk", () => {
+    expect(isTokenStandard("zts1znnxxxxxxxxxxxxx9z4ul")).toBe(false); // 21-char body
+    expect(isTokenStandard("zts1znnxxxxxxxxxxxxx9z4ulxx")).toBe(false); // 23-char body
+    expect(isTokenStandard("z1qxemdeddedxplasmaxxxxxxxxxxxxxxxxsctrp")).toBe(false);
+    expect(isTokenStandard("ZTS1ZNNXXXXXXXXXXXXX9Z4ULX")).toBe(false);
+    expect(isTokenStandard("../etc/passwd")).toBe(false);
+    expect(isTokenStandard("")).toBe(false);
   });
 });
 

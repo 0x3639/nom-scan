@@ -27,10 +27,15 @@ const STALE = {
   momentum: 5 * 60_000,
 };
 
+// Every queryFn forwards TanStack's AbortSignal so superseded requests (rapid
+// paging, address hopping) are cancelled instead of running to completion
+// against the upstream's shared 60 req/min budget.
+
 export function useStatus() {
   return useQuery({
     queryKey: ["status"],
-    queryFn: () => nomscanFetch<Record<string, unknown>>("/api/status").then((r) => r.data),
+    queryFn: ({ signal }) =>
+      nomscanFetch<Record<string, unknown>>("/api/status", { signal }).then((r) => r.data),
     staleTime: STALE.status,
     refetchInterval: 10_000,
   });
@@ -39,8 +44,10 @@ export function useStatus() {
 export function useSearch(query: string, enabled: boolean) {
   return useQuery({
     queryKey: ["search", query],
-    queryFn: () =>
-      nomscanFetch<SearchResult>(`/api/search?q=${encodeURIComponent(query)}`).then((r) => r.data),
+    queryFn: ({ signal }) =>
+      nomscanFetch<SearchResult>(`/api/search?q=${encodeURIComponent(query)}`, { signal }).then(
+        (r) => r.data,
+      ),
     enabled,
     staleTime: 0,
   });
@@ -49,10 +56,10 @@ export function useSearch(query: string, enabled: boolean) {
 export function useAddressSummary(address: string) {
   return useQuery({
     queryKey: ["address", address, "summary"],
-    queryFn: () =>
-      nomscanFetch<AddressSummary>(`/api/address/${encodeURIComponent(address)}/summary`).then(
-        (r) => r.data,
-      ),
+    queryFn: ({ signal }) =>
+      nomscanFetch<AddressSummary>(`/api/address/${encodeURIComponent(address)}/summary`, {
+        signal,
+      }).then((r) => r.data),
     staleTime: STALE.address,
     enabled: Boolean(address),
   });
@@ -61,10 +68,10 @@ export function useAddressSummary(address: string) {
 export function useAddressBalances(address: string) {
   return useQuery({
     queryKey: ["address", address, "balances"],
-    queryFn: () =>
-      nomscanFetch<BalanceEntry[]>(`/api/address/${encodeURIComponent(address)}/balances`).then(
-        (r) => r.data,
-      ),
+    queryFn: ({ signal }) =>
+      nomscanFetch<BalanceEntry[]>(`/api/address/${encodeURIComponent(address)}/balances`, {
+        signal,
+      }).then((r) => r.data),
     staleTime: STALE.address,
     enabled: Boolean(address),
   });
@@ -82,7 +89,7 @@ export function useAddressTransactions(address: string, params: TxListParams) {
   const sort = params.sort ?? "desc";
   return useQuery({
     queryKey: ["address", address, "transactions", page, pageSize, sort],
-    queryFn: () => nomscanFetch<TxRow[]>(txListPath(address, page, pageSize, sort)),
+    queryFn: ({ signal }) => nomscanFetch<TxRow[]>(txListPath(address, page, pageSize, sort), { signal }),
     staleTime: STALE.address,
     enabled: Boolean(address),
     // Keep the previous page visible while the new one loads so Next/Prev
@@ -105,7 +112,8 @@ export function usePrefetchNextTransactions(
     const next = params.page + 1;
     void qc.prefetchQuery({
       queryKey: ["address", address, "transactions", next, params.pageSize, params.sort],
-      queryFn: () => nomscanFetch<TxRow[]>(txListPath(address, next, params.pageSize, params.sort)),
+      queryFn: ({ signal }) =>
+        nomscanFetch<TxRow[]>(txListPath(address, next, params.pageSize, params.sort), { signal }),
       staleTime: STALE.address,
     });
   }, [qc, address, params.page, params.pageSize, params.sort, params.hasNext]);
@@ -125,7 +133,7 @@ export function useRecentTransactions(params: TxListParams) {
   const sort = params.sort ?? "desc";
   return useQuery({
     queryKey: ["transactions", page, pageSize, sort],
-    queryFn: () => nomscanFetch<TxRow[]>(recentTxPath(page, pageSize, sort)),
+    queryFn: ({ signal }) => nomscanFetch<TxRow[]>(recentTxPath(page, pageSize, sort), { signal }),
     staleTime: STALE.address,
     placeholderData: keepPreviousData,
   });
@@ -144,7 +152,8 @@ export function usePrefetchNextRecentTransactions(params: {
     const next = params.page + 1;
     void qc.prefetchQuery({
       queryKey: ["transactions", next, params.pageSize, params.sort],
-      queryFn: () => nomscanFetch<TxRow[]>(recentTxPath(next, params.pageSize, params.sort)),
+      queryFn: ({ signal }) =>
+        nomscanFetch<TxRow[]>(recentTxPath(next, params.pageSize, params.sort), { signal }),
       staleTime: STALE.address,
     });
   }, [qc, params.page, params.pageSize, params.sort, params.hasNext]);
@@ -160,7 +169,8 @@ export function useTokens(standards: ReadonlyArray<string | null | undefined>): 
   const results = useQueries({
     queries: unique.map((s) => ({
       queryKey: ["token", s],
-      queryFn: () => nomscanFetch<TokenMeta>(`/api/tokens/${encodeURIComponent(s)}`).then((r) => r.data),
+      queryFn: ({ signal }: { signal: AbortSignal }) =>
+        nomscanFetch<TokenMeta>(`/api/tokens/${encodeURIComponent(s)}`, { signal }).then((r) => r.data),
       staleTime: STALE.token,
     })),
   });
@@ -175,8 +185,8 @@ export function useTokens(standards: ReadonlyArray<string | null | undefined>): 
 export function useTransaction(hash: string) {
   return useQuery({
     queryKey: ["tx", hash],
-    queryFn: () =>
-      nomscanFetch<TxDetail>(`/api/tx/${encodeURIComponent(hash)}`).then((r) => r.data),
+    queryFn: ({ signal }) =>
+      nomscanFetch<TxDetail>(`/api/tx/${encodeURIComponent(hash)}`, { signal }).then((r) => r.data),
     staleTime: STALE.tx,
     enabled: Boolean(hash),
   });
@@ -185,27 +195,19 @@ export function useTransaction(hash: string) {
 export function usePrices() {
   return useQuery({
     queryKey: ["prices"],
-    queryFn: () => nomscanFetch<PriceMap>("/api/prices").then((r) => r.data),
+    queryFn: ({ signal }) => nomscanFetch<PriceMap>("/api/prices", { signal }).then((r) => r.data),
     staleTime: STALE.prices,
     refetchInterval: 5 * 60_000,
-  });
-}
-
-export function useToken(standard: string) {
-  return useQuery({
-    queryKey: ["token", standard],
-    queryFn: () =>
-      nomscanFetch<TokenMeta>(`/api/tokens/${encodeURIComponent(standard)}`).then((r) => r.data),
-    staleTime: STALE.token,
-    enabled: Boolean(standard),
   });
 }
 
 export function useMomentum(height: string) {
   return useQuery({
     queryKey: ["momentum", height],
-    queryFn: () =>
-      nomscanFetch<MomentumDetail>(`/api/momentum/${encodeURIComponent(height)}`).then((r) => r.data),
+    queryFn: ({ signal }) =>
+      nomscanFetch<MomentumDetail>(`/api/momentum/${encodeURIComponent(height)}`, { signal }).then(
+        (r) => r.data,
+      ),
     staleTime: STALE.momentum,
     enabled: Boolean(height),
   });

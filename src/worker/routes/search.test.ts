@@ -52,7 +52,10 @@ describe("getSearch dispatch", () => {
     vi.mocked(nomIndexerFetch).mockRejectedValue(new UpstreamError(500, "boom", null, null));
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     const res = await getSearch(req(ADDR), env, ctx, {});
-    expect(res.status).toBe(500);
+    // Upstream 5xx surfaces to the client as a gateway error, not a mirrored 500.
+    expect(res.status).toBe(502);
+    const body = (await res.json()) as { error: { code: string } };
+    expect(body.error.code).toBe("upstream_error");
     spy.mockRestore();
   });
 

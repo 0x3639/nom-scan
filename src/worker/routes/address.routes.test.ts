@@ -2,8 +2,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Env } from "../env";
 import type { BalanceEntry, TxRow } from "@shared/api/nomscan";
 
-vi.mock("../upstream", () => ({ nomIndexerFetch: vi.fn() }));
+// Keep the real unwrapCollection/clampPage — only the network call is mocked.
+vi.mock("../upstream", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../upstream")>()),
+  nomIndexerFetch: vi.fn(),
+}));
 vi.mock("../services/tokens", () => ({ getToken: vi.fn() }));
+// withCache should just run the producer in tests — edge caching is covered by cache.test.ts.
+vi.mock("../cache", () => ({
+  withCache: (_req: Request, _ttl: number | (() => number), fn: () => Promise<Response>) => fn(),
+}));
 import { nomIndexerFetch } from "../upstream";
 import { getToken } from "../services/tokens";
 import { getAddressBalances, getAddressTransactions } from "./address";

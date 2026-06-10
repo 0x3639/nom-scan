@@ -41,7 +41,14 @@ export function AddressPage() {
       <AddressSummary address={address} />
       <AddressTabs active={tab} onChange={setTab} />
       <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} tabIndex={0}>
-        {tab === "portfolios" ? <PortfolioTab address={address} /> : <TransactionsTab address={address} />}
+        {/* key={address} resets per-address local state (e.g. the transactions
+            page number) when navigating between addresses — without it, the
+            reused component instance keeps the old page. */}
+        {tab === "portfolios" ? (
+          <PortfolioTab key={address} address={address} />
+        ) : (
+          <TransactionsTab key={address} address={address} />
+        )}
       </div>
     </div>
   );

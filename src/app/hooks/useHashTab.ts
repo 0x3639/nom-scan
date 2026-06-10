@@ -20,9 +20,11 @@ export function useHashTab<T extends string>(defaultTab: T, allowed: readonly T[
 
   const setTab = useCallback(
     (next: T) => {
-      navigate({ hash: `#${next}` }, { replace: true });
+      // Carry the current query string — navigate({ hash }) alone resolves the
+      // missing `search` to "" and silently wipes any ?params off the URL.
+      navigate({ search: location.search, hash: `#${next}` }, { replace: true });
     },
-    [navigate],
+    [navigate, location.search],
   );
 
   return [active, setTab];

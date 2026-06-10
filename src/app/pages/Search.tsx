@@ -1,6 +1,6 @@
 import { Navigate, useSearchParams } from "react-router-dom";
 import { useSearch } from "../api/queries";
-import { normalizeHash } from "@shared/validate/identifier";
+import { isAddress, isHash, isMomentumHeight, normalizeHash } from "@shared/validate/identifier";
 
 export function Search() {
   const [params] = useSearchParams();
@@ -22,10 +22,19 @@ export function Search() {
     );
   }
 
+  // Re-validate the Worker-supplied target before interpolating it into a
+  // route — defense-in-depth so a buggy envelope can't inject path segments
+  // or query/hash parts into the navigation.
   const { kind, target } = search.data;
-  if (kind === "address" && target) return <Navigate to={`/address/${target}#portfolios`} replace />;
-  if (kind === "tx" && target) return <Navigate to={`/tx/${normalizeHash(target)}`} replace />;
-  if (kind === "momentum" && target) return <Navigate to={`/momentum/${target}`} replace />;
+  if (kind === "address" && target && isAddress(target)) {
+    return <Navigate to={`/address/${target}#portfolios`} replace />;
+  }
+  if (kind === "tx" && target && isHash(target)) {
+    return <Navigate to={`/tx/${normalizeHash(target)}`} replace />;
+  }
+  if (kind === "momentum" && target && isMomentumHeight(target)) {
+    return <Navigate to={`/momentum/${target}`} replace />;
+  }
 
   return (
     <div style={{ color: "var(--color-muted)" }}>

@@ -1,6 +1,33 @@
 import type { Env } from "./env";
 import { getNomIndexerJwt } from "./jwt";
 import { UpstreamError } from "./errors";
+import type { NomScanPagination } from "@shared/api/nomscan";
+
+/** Upstream collection envelope: `{ data, pagination }` (single objects come bare). */
+export interface UpstreamCollection<T> {
+  data: T[];
+  pagination?: NomScanPagination;
+}
+
+/**
+ * Normalize a collection response — upstream returns `{ data, pagination }`,
+ * but a bare array is tolerated (and pagination synthesized by the caller).
+ */
+export function unwrapCollection<T>(raw: UpstreamCollection<T> | T[] | null | undefined): {
+  entries: T[];
+  pagination?: NomScanPagination;
+} {
+  if (Array.isArray(raw)) return { entries: raw };
+  const pagination = raw?.pagination;
+  return { entries: raw?.data ?? [], ...(pagination ? { pagination } : {}) };
+}
+
+/** Shared `page` query-param clamp: positive integer, defaulting to 1. */
+export function clampPage(raw: string | null): number {
+  const n = Number.parseInt(raw ?? "", 10);
+  if (!Number.isFinite(n) || n <= 0) return 1;
+  return n;
+}
 
 interface FetchOptions {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -59,6 +86,18 @@ export async function nomIndexerFetch<T = unknown>(
       `Upstream ${res.status} on ${path}${detail ? `: ${detail}` : ""}`,
       contentType.includes("problem+json") ? body : body,
       retryAfter,
+    );
+  }
+
+  // A 2xx with a non-JSON body (e.g. an HTML maintenance page from a proxy in
+  // front of the indexer) must surface as an upstream error, not flow into
+  // routes as a string masquerading as T.
+  if (typeof body === "string" && text.trim() !== "") {
+    throw new UpstreamError(
+      502,
+      `Upstream returned non-JSON (${contentType || "unknown content-type"}) on ${path}`,
+      null,
+      null,
     );
   }
 

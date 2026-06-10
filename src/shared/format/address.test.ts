@@ -22,4 +22,9 @@ describe("truncateMiddle", () => {
     const hash = "0123456789abcdef".repeat(4); // 64 chars
     expect(truncateMiddle(hash, 10, 8)).toBe(`${hash.slice(0, 10)}…${hash.slice(-8)}`);
   });
+
+  it("handles a zero tail — slice(-0) must not return the whole string", () => {
+    expect(truncateMiddle("0123456789abcdef", 8, 0)).toBe("01234567…");
+    expect(truncateMiddle("0123456789abcdef", 0, 4)).toBe("…cdef");
+  });
 });
