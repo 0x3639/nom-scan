@@ -5,9 +5,10 @@ import { UpstreamError } from "../errors";
 import { detectQueryType, normalizeAddress, normalizeHash, normalizeMomentum } from "@shared/validate/identifier";
 import type { SearchResult } from "@shared/api/nomscan";
 
-async function existsAccount(env: import("../env").Env, address: string): Promise<boolean> {
+/** True when the upstream object exists; false on its 404; rethrows anything else. */
+async function existsUpstream(env: import("../env").Env, path: string): Promise<boolean> {
   try {
-    await nomIndexerFetch(env, `/api/v1/accounts/${encodeURIComponent(address)}`);
+    await nomIndexerFetch(env, path);
     return true;
   } catch (e) {
     if (e instanceof UpstreamError && e.status === 404) return false;
@@ -15,25 +16,12 @@ async function existsAccount(env: import("../env").Env, address: string): Promis
   }
 }
 
-async function existsAccountBlock(env: import("../env").Env, hash: string): Promise<boolean> {
-  try {
-    await nomIndexerFetch(env, `/api/v1/account_blocks/${encodeURIComponent(hash)}`);
-    return true;
-  } catch (e) {
-    if (e instanceof UpstreamError && e.status === 404) return false;
-    throw e;
-  }
-}
-
-async function existsMomentum(env: import("../env").Env, height: string): Promise<boolean> {
-  try {
-    await nomIndexerFetch(env, `/api/v1/momentums/${encodeURIComponent(height)}`);
-    return true;
-  } catch (e) {
-    if (e instanceof UpstreamError && e.status === 404) return false;
-    throw e;
-  }
-}
+const existsAccount = (env: import("../env").Env, address: string) =>
+  existsUpstream(env, `/api/v1/accounts/${encodeURIComponent(address)}`);
+const existsAccountBlock = (env: import("../env").Env, hash: string) =>
+  existsUpstream(env, `/api/v1/account_blocks/${encodeURIComponent(hash)}`);
+const existsMomentum = (env: import("../env").Env, height: string) =>
+  existsUpstream(env, `/api/v1/momentums/${encodeURIComponent(height)}`);
 
 export const getSearch: RouteHandler = async (request, env) => {
   const url = new URL(request.url);
@@ -67,10 +55,7 @@ export const getSearch: RouteHandler = async (request, env) => {
     }
     return ok<SearchResult>({ kind: "not_found" });
   } catch (e) {
-    if (e instanceof UpstreamError) {
-      return errorFromThrown(e);
-    }
-    console.error("[nomscan] search error:", e);
-    return err("internal", "Something went wrong.", 500);
+    // errorFromThrown maps UpstreamError and logs + 500s anything else.
+    return errorFromThrown(e);
   }
 };

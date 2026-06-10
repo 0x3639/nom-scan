@@ -25,11 +25,8 @@ export class ApiRouter {
     return this;
   }
 
+  // GET is the only verb this read-only API uses; add() covers any future verb.
   get(p: string, h: RouteHandler) { return this.add("GET", p, h); }
-  post(p: string, h: RouteHandler) { return this.add("POST", p, h); }
-  put(p: string, h: RouteHandler) { return this.add("PUT", p, h); }
-  patch(p: string, h: RouteHandler) { return this.add("PATCH", p, h); }
-  delete(p: string, h: RouteHandler) { return this.add("DELETE", p, h); }
 
   async dispatch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response | null> {
     for (const route of this.routes) {

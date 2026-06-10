@@ -1,20 +1,20 @@
 import type { RouteHandler } from "../router";
-import { nomIndexerFetch } from "../upstream";
+import { nomIndexerFetch, unwrapCollection, type UpstreamCollection } from "../upstream";
+import { withCache } from "../cache";
 import { errorFromThrown, err } from "../respond";
 import { getToken } from "../services/tokens";
 import { isAddress } from "@shared/validate/identifier";
 import { getDirection } from "@shared/logic/direction";
 import { formatAmount } from "@shared/format/amount";
-import type { NomScanPagination, TokenMeta, TxRow } from "@shared/api/nomscan";
-
-interface UpstreamCollection<T> {
-  data: T[];
-  pagination?: NomScanPagination;
-}
+import type { TokenMeta, TxRow } from "@shared/api/nomscan";
 
 const PAGE_SIZE = 200;
 const MAX_PAGES = 50; // 50 * 200 = 10,000 row cap (newest first)
 const MAX_ROWS = MAX_PAGES * PAGE_SIZE;
+// An export fans out up to MAX_PAGES upstream calls against a 60 req/min budget
+// shared by ALL explorer traffic — edge-cache the result so repeat downloads
+// (or someone hammering the endpoint) can't starve everyone else's API calls.
+const CSV_CACHE_SECONDS = 300;
 
 const CSV_COLUMNS = [
   "tx_hash", "direction", "block_type", "method", "timestamp_utc",
@@ -22,13 +22,19 @@ const CSV_COLUMNS = [
   "amount_raw", "token_standard", "momentum_height", "momentum_hash",
 ] as const;
 
+// Plain numbers ("-100000000", "1.5") can't execute as formulas and must stay
+// unprefixed — an apostrophe would corrupt the amount/amount_raw columns.
+const PLAIN_NUMBER_RE = /^-?\d+(\.\d+)?$/;
+
 // Quote every field and double internal quotes; neutralize spreadsheet formula
 // injection by prefixing a single quote when the cell — ignoring any leading
-// tab/CR/space — starts with = + - @. The leading-whitespace case matters because
-// token_symbol is attacker-controllable (set by the token issuer). Exported for tests.
+// whitespace (\s covers tab/CR/LF/NBSP/U+2028 etc., which spreadsheets may trim
+// before parsing) — starts with = + - @ or an embedded tab/CR. The whitespace
+// case matters because token_symbol is attacker-controllable (set by the token
+// issuer). Exported for tests.
 export function csvCell(value: string | number | null | undefined): string {
   let s = value == null ? "" : String(value);
-  if (/^[\t\r ]*[=+\-@]/.test(s)) s = `'${s}`;
+  if (!PLAIN_NUMBER_RE.test(s) && /^\s*[=+\-@\t\r]/.test(s)) s = `'${s}`;
   return `"${s.replace(/"/g, '""')}"`;
 }
 
@@ -36,20 +42,34 @@ function isoUtc(seconds: number | null | undefined): string {
   return typeof seconds === "number" ? new Date(seconds * 1000).toISOString() : "";
 }
 
-export const getAddressTransactionsCsv: RouteHandler = async (_request, env, _ctx, params) => {
+export const getAddressTransactionsCsv: RouteHandler = async (request, env, _ctx, params) => {
   const address = params["address"] ?? "";
   if (!isAddress(address)) return err("bad_request", "Invalid or missing address.", 400);
 
+  const url = new URL(request.url);
+  const canonicalUrl = `${url.origin}${url.pathname}`;
+
+  return withCache(request, CSV_CACHE_SECONDS, () => buildCsv(env, address), canonicalUrl);
+};
+
+async function buildCsv(env: import("../env").Env, address: string): Promise<Response> {
   try {
     // 1. Paginate newest-first until a short page, the row cap, or MAX_PAGES.
+    //    Offset pagination has no snapshot anchor: a transaction landing
+    //    mid-export shifts rows across page boundaries, so dedupe by hash.
     const rows: TxRow[] = [];
+    const seen = new Set<string>();
     for (let page = 1; page <= MAX_PAGES; page++) {
       const upstream = await nomIndexerFetch<UpstreamCollection<TxRow> | TxRow[]>(
         env,
         `/api/v1/accounts/${encodeURIComponent(address)}/transactions?page=${page}&page_size=${PAGE_SIZE}&sort=desc`,
       );
-      const entries: TxRow[] = Array.isArray(upstream) ? upstream : (upstream?.data ?? []);
-      rows.push(...entries);
+      const { entries } = unwrapCollection(upstream);
+      for (const row of entries) {
+        if (row.hash && seen.has(row.hash)) continue;
+        if (row.hash) seen.add(row.hash);
+        rows.push(row);
+      }
       if (entries.length < PAGE_SIZE) break;
       if (rows.length >= MAX_ROWS) break;
     }
@@ -104,11 +124,10 @@ export const getAddressTransactionsCsv: RouteHandler = async (_request, env, _ct
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
         "Content-Disposition": `attachment; filename="${filename}"`,
-        "Cache-Control": "no-store",
         "X-Content-Type-Options": "nosniff",
       },
     });
   } catch (e) {
     return errorFromThrown(e);
   }
-};
+}

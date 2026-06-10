@@ -46,17 +46,21 @@ const PROD_CSP = [
 ].join("; ");
 
 function withSecurityHeaders(response: Response, env: Env): Response {
-  // Only decorate HTML responses; JSON API responses already set their own headers.
-  const contentType = response.headers.get("content-type") ?? "";
-  if (!contentType.includes("text/html")) return response;
+  // Base headers go on EVERY asset response (JS/CSS/JSON included) — nosniff on
+  // HTML alone leaves bundle files MIME-sniffable. API JSON sets its own copies
+  // in respond.ts.
   const headers = new Headers(response.headers);
   for (const [k, v] of Object.entries(BASE_SECURITY_HEADERS)) headers.set(k, v);
-  // CSP only applies in production. In local dev, Vite's React Fast Refresh
-  // injects an inline <script> preamble that strict CSP would block — without
-  // the preamble, react-refresh throws "can't detect preamble" and React
-  // never mounts. Local risk is nil (it's the developer's own machine).
   if (env.NOMSCAN_ENV === "production") {
-    headers.set("Content-Security-Policy", PROD_CSP);
+    headers.set("Strict-Transport-Security", "max-age=31536000");
+    // CSP only applies in production. In local dev, Vite's React Fast Refresh
+    // injects an inline <script> preamble that strict CSP would block — without
+    // the preamble, react-refresh throws "can't detect preamble" and React
+    // never mounts. Local risk is nil (it's the developer's own machine).
+    const contentType = response.headers.get("content-type") ?? "";
+    if (contentType.includes("text/html")) {
+      headers.set("Content-Security-Policy", PROD_CSP);
+    }
   }
   return new Response(response.body, {
     status: response.status,
@@ -69,7 +73,8 @@ export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
-    if (url.pathname.startsWith("/api/")) {
+    // Match bare "/api" too — it must 404 as JSON, not fall through to the SPA shell.
+    if (url.pathname === "/api" || url.pathname.startsWith("/api/")) {
       try {
         const matched = await api.dispatch(request, env, ctx);
         if (matched) return matched;

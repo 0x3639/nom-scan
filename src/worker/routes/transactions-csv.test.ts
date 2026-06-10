@@ -2,10 +2,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Env } from "../env";
 import { UpstreamError } from "../errors";
 
-vi.mock("../upstream", () => ({ nomIndexerFetch: vi.fn() }));
+// Keep the real unwrapCollection — only the network call is mocked.
+vi.mock("../upstream", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../upstream")>()),
+  nomIndexerFetch: vi.fn(),
+}));
 import { nomIndexerFetch } from "../upstream";
 vi.mock("../services/tokens", () => ({ getToken: vi.fn() }));
 import { getToken } from "../services/tokens";
+// withCache should just run the producer in tests — edge caching is covered by cache.test.ts.
+vi.mock("../cache", () => ({
+  withCache: (_req: Request, _ttl: number | (() => number), fn: () => Promise<Response>) => fn(),
+}));
 
 import { getAddressTransactionsCsv, csvCell } from "./transactions-csv";
 
@@ -51,13 +59,24 @@ describe("csvCell", () => {
   });
   it("neutralizes leading formula characters", () => {
     expect(csvCell("=cmd")).toBe('"\'=cmd"');
-    expect(csvCell("+1")).toBe('"\'+1"');
-    expect(csvCell("-1")).toBe('"\'-1"');
     expect(csvCell("@x")).toBe('"\'@x"');
+    expect(csvCell("+1+cmd")).toBe('"\'+1+cmd"');
+    expect(csvCell("-1+cmd")).toBe('"\'-1+cmd"');
+  });
+  it("leaves plain numbers untouched — an apostrophe would corrupt amount columns", () => {
+    expect(csvCell("-1")).toBe('"-1"');
+    expect(csvCell("-100000000")).toBe('"-100000000"');
+    expect(csvCell("-1.5")).toBe('"-1.5"');
+    // "+1" stays neutralized: upstream amounts never carry a + sign, and + is a
+    // formula trigger, so the plain-number exemption is minus-only.
+    expect(csvCell("+1")).toBe('"\'+1"');
   });
   it("neutralizes a formula char hidden behind leading whitespace", () => {
     expect(csvCell(" =1+1")).toBe('"\' =1+1"');
     expect(csvCell("\t=cmd")).toBe('"\'\t=cmd"');
+    expect(csvCell("\n=HYPERLINK(1)")).toBe('"\'\n=HYPERLINK(1)"');
+    expect(csvCell(" =cmd")).toBe('"\' =cmd"');
+    expect(csvCell(" =cmd")).toBe('"\' =cmd"');
   });
 });
 
@@ -109,18 +128,33 @@ describe("getAddressTransactionsCsv", () => {
   });
 
   it("enforces the 50-page / 10,000-row cap", async () => {
-    vi.mocked(nomIndexerFetch).mockResolvedValue(page(200, 0)); // always full
+    // Distinct hashes per call — a static mock would re-serve page 1's hashes
+    // and the duplicate guard would (correctly) drop them.
+    let call = 0;
+    vi.mocked(nomIndexerFetch).mockImplementation(async () => page(200, 200 * call++)); // always full
     const res = await getAddressTransactionsCsv(req(ADDR), env, ctx, { address: ADDR });
     const lines = (await res.text()).trim().split("\r\n");
     expect(lines).toHaveLength(1 + 10000);
     expect(vi.mocked(nomIndexerFetch)).toHaveBeenCalledTimes(50);
   });
 
+  it("deduplicates rows that shift across page boundaries mid-export", async () => {
+    // A new tx landing between page fetches pushes the tail of page 1 onto the
+    // head of page 2 — the same hash must not appear twice in the CSV.
+    vi.mocked(nomIndexerFetch)
+      .mockResolvedValueOnce(page(200, 0)) // h0..h199
+      .mockResolvedValueOnce(page(150, 100)); // h100..h249 — first 100 are repeats, short page ends loop
+    const res = await getAddressTransactionsCsv(req(ADDR), env, ctx, { address: ADDR });
+    const lines = (await res.text()).trim().split("\r\n");
+    expect(lines).toHaveLength(1 + 250); // h0..h249, no duplicates
+  });
+
   it("returns a JSON error (not CSV) when upstream fails", async () => {
     vi.mocked(nomIndexerFetch).mockRejectedValue(new UpstreamError(500, "boom", null, null));
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     const res = await getAddressTransactionsCsv(req(ADDR), env, ctx, { address: ADDR });
-    expect(res.status).toBe(500);
+    // Upstream 5xx surfaces to the client as a gateway error.
+    expect(res.status).toBe(502);
     expect(res.headers.get("content-type")).toContain("application/json");
     spy.mockRestore();
   });

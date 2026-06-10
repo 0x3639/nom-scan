@@ -48,9 +48,9 @@ export function err(
  */
 export function errorFromThrown(thrown: unknown): Response {
   if (thrown instanceof UpstreamError) {
-    const { code, userMessage } = mapUpstreamStatus(thrown.status);
+    const { code, userMessage, clientStatus } = mapUpstreamStatus(thrown.status);
     console.error(`[nomscan] upstream ${thrown.status}:`, thrown.message);
-    return err(code, userMessage, thrown.status, thrown.retryAfterSeconds ?? undefined);
+    return err(code, userMessage, clientStatus, thrown.retryAfterSeconds ?? undefined);
   }
   console.error("[nomscan] internal error:", thrown);
   return err("internal", "Something went wrong.", 500);

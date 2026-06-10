@@ -1,11 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Env } from "../env";
 
-vi.mock("../upstream", () => ({ nomIndexerFetch: vi.fn() }));
+// Keep the real unwrapCollection/clampPage — only the network call is mocked.
+vi.mock("../upstream", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../upstream")>()),
+  nomIndexerFetch: vi.fn(),
+}));
 import { nomIndexerFetch } from "../upstream";
 // withCache should just run the producer in tests (no Cache API in node).
 vi.mock("../cache", () => ({
-  withCache: (_req: Request, _ttl: number, fn: () => Promise<Response>) => fn(),
+  withCache: (_req: Request, _ttl: number | (() => number), fn: () => Promise<Response>) => fn(),
 }));
 import { getTransactions, clampAllowedPageSize, clampPage } from "./transactions";
 

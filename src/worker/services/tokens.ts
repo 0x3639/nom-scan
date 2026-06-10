@@ -7,14 +7,17 @@ import type { TokenMeta } from "@shared/api/nomscan";
  * Fetch token metadata. Per-isolate in-memory cache so balance/tx enrichment
  * doesn't trip the upstream rate limit on repeated lookups within a request burst.
  * Cache TTL is short (10 min) because token metadata is stable but symbol/decimals
- * could in theory change. The /api/tokens/:standard route uses a longer Cache API TTL.
+ * could in theory change. 404s are negative-cached (5 min) too — an unknown
+ * standard referenced by a busy page would otherwise re-fetch on every request.
+ * The /api/tokens/:standard route uses a longer Cache API TTL.
  */
 interface CachedToken {
-  meta: TokenMeta;
+  meta: TokenMeta | null;
   expiresAt: number;
 }
 const memo = new Map<string, CachedToken>();
 const TTL_MS = 10 * 60 * 1000;
+const NEGATIVE_TTL_MS = 5 * 60 * 1000;
 
 export async function getToken(env: Env, standard: string): Promise<TokenMeta | null> {
   if (!standard) return null;
@@ -27,7 +30,10 @@ export async function getToken(env: Env, standard: string): Promise<TokenMeta | 
     memo.set(standard, { meta, expiresAt: now + TTL_MS });
     return meta;
   } catch (e) {
-    if (e instanceof UpstreamError && e.status === 404) return null;
+    if (e instanceof UpstreamError && e.status === 404) {
+      memo.set(standard, { meta: null, expiresAt: now + NEGATIVE_TTL_MS });
+      return null;
+    }
     throw e;
   }
 }
