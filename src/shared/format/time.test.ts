@@ -23,6 +23,16 @@ describe("formatAge", () => {
     expect(formatAge(null, NOW_MS)).toBe("—");
     expect(formatAge(undefined, NOW_MS)).toBe("—");
   });
+
+  it("treats a 0 timestamp as missing data, not the 1970 epoch", () => {
+    expect(formatAge(0, NOW_MS)).toBe("—");
+    expect(formatTimestamp(0)).toBe("—");
+    expect(formatDate(0)).toBe("—");
+  });
+
+  it("caps months at 11 in the 360–365 day overlap window", () => {
+    expect(formatAge(NOW_S - 362 * 24 * 3600, NOW_MS)).toBe("11mo ago");
+  });
 });
 
 describe("formatTimestamp / formatDate", () => {

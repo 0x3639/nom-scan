@@ -4,6 +4,9 @@
  */
 export function truncateMiddle(value: string, head = 8, tail = 6): string {
   if (!value) return "";
-  if (value.length <= head + tail + 1) return value;
-  return `${value.slice(0, head)}…${value.slice(-tail)}`;
+  // slice(-0) is slice(0) — the whole string — so a zero tail must be special-cased.
+  const h = Math.max(0, head);
+  const t = Math.max(0, tail);
+  if (value.length <= h + t + 1) return value;
+  return `${value.slice(0, h)}…${t > 0 ? value.slice(-t) : ""}`;
 }
