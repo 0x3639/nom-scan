@@ -1,7 +1,16 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useCopy(timeoutMs = 1500): { copied: boolean; copy: (text: string) => Promise<boolean> } {
   const [copied, setCopied] = useState(false);
+  const timerRef = useRef<number | null>(null);
+
+  // Clear any pending hide-timer on unmount so it can't setState afterwards.
+  useEffect(
+    () => () => {
+      if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+    },
+    [],
+  );
 
   const copy = useCallback(
     async (text: string) => {
@@ -16,11 +25,15 @@ export function useCopy(timeoutMs = 1500): { copied: boolean; copy: (text: strin
           ta.style.top = "-9999px";
           document.body.appendChild(ta);
           ta.select();
-          document.execCommand("copy");
+          const ok = document.execCommand("copy");
           document.body.removeChild(ta);
+          // execCommand reports failure via its return value, not an exception —
+          // don't flash "Copied" when nothing was copied.
+          if (!ok) return false;
         }
         setCopied(true);
-        window.setTimeout(() => setCopied(false), timeoutMs);
+        if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+        timerRef.current = window.setTimeout(() => setCopied(false), timeoutMs);
         return true;
       } catch {
         return false;

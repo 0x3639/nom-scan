@@ -28,14 +28,20 @@ export function DownloadCsvButton({ address, txCount }: Props) {
       }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
+      // Prefer the filename the Worker already declares in Content-Disposition
+      // so the two tiers can't silently desynchronize.
+      const disposition = res.headers.get("content-disposition") ?? "";
+      const fromHeader = /filename="([^"]+)"/.exec(disposition)?.[1];
       const date = new Date().toISOString().slice(0, 10);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `nomscan-${address.slice(0, 12)}-transactions-${date}.csv`;
+      a.download = fromHeader ?? `nomscan-${address.slice(0, 12)}-transactions-${date}.csv`;
       document.body.appendChild(a);
       a.click();
       a.remove();
-      URL.revokeObjectURL(url);
+      // Revoke after the download has had a chance to start — synchronous
+      // revocation right after click() can abort it in some browsers.
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
       setStatus("idle");
     } catch {
       setStatus("error");
