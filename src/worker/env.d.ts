@@ -18,6 +18,13 @@ export interface Env {
   ASSETS: Fetcher;
 
   /**
+   * Per-client rate limiter binding (declared in wrangler.jsonc). Optional so
+   * environments without the binding (unit tests, stripped-down configs) fail
+   * open rather than crash — see src/worker/ratelimit.ts.
+   */
+  API_LIMITER?: RateLimit;
+
+  /**
    * Deployment environment. "production" applies a strict CSP that disallows
    * inline scripts. "local" relaxes CSP so Vite's React Fast Refresh preamble
    * (an inline script) can run during dev.

@@ -1,6 +1,7 @@
 import type { Env } from "./env";
 import { ApiRouter } from "./router";
 import { err } from "./respond";
+import { enforceClientRateLimit } from "./ratelimit";
 import { getStatus } from "./routes/status";
 import { getSearch } from "./routes/search";
 import {
@@ -76,6 +77,10 @@ export default {
     // Match bare "/api" too — it must 404 as JSON, not fall through to the SPA shell.
     if (url.pathname === "/api" || url.pathname.startsWith("/api/")) {
       try {
+        // Per-client fairness before any work — all users share one upstream
+        // rate-limit subject, so a single greedy client must be cut off here.
+        const limited = await enforceClientRateLimit(request, env);
+        if (limited) return limited;
         const matched = await api.dispatch(request, env, ctx);
         if (matched) return matched;
         return err("not_found", "API route not found.", 404);
